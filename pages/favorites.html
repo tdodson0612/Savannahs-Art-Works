@@ -1,0 +1,177 @@
+<!-- pages/favorites.html -->
+
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favorites | Savannah's Art Works</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+
+```
+<div class="announcement-bar">
+    <p>Original artwork • Handmade with care • Made to be enjoyed</p>
+</div>
+
+<header class="site-header">
+
+    <div class="header-inner">
+
+        <a href="../index.html" class="logo">
+            <span class="logo-main">Savannah's</span>
+            <span class="logo-sub">Art Works</span>
+        </a>
+
+        <nav class="main-navigation" aria-label="Main navigation">
+            <a href="../index.html">Home</a>
+            <a href="shop.html">Shop</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+        </nav>
+
+        <div class="header-actions">
+
+            <button class="header-icon" id="searchButton" aria-label="Search">
+                <span>⌕</span>
+            </button>
+
+            <a href="account.html" class="header-icon" aria-label="Account">
+                <span>♙</span>
+            </a>
+
+            <a href="cart.html" class="header-icon cart-button" aria-label="Shopping cart">
+                <span>♧</span>
+                <span class="cart-count">0</span>
+            </a>
+
+            <button class="mobile-menu-button" id="mobileMenuButton" aria-label="Open menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+        </div>
+
+    </div>
+
+    <nav class="mobile-navigation" id="mobileNavigation">
+        <a href="../index.html">Home</a>
+        <a href="shop.html">Shop</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+        <a href="account.html">My Account</a>
+        <a href="cart.html">Cart</a>
+    </nav>
+
+</header>
+
+<div class="search-overlay" id="searchOverlay">
+    <div class="search-box">
+
+        <button class="search-close" id="searchClose" aria-label="Close search">×</button>
+
+        <p class="eyebrow">SEARCH THE COLLECTION</p>
+        <h2>Find something beautiful.</h2>
+
+        <div class="search-input-wrapper">
+            <input type="search" id="siteSearch" placeholder="Search artwork..." autocomplete="off">
+            <button id="performSearch">Search</button>
+        </div>
+
+    </div>
+</div>
+
+<main>
+
+    <section class="page-hero">
+        <div class="page-hero-content">
+            <p class="eyebrow">YOUR COLLECTION</p>
+            <h1>Favorites</h1>
+            <p>Keep track of the artwork that catches your eye.</p>
+        </div>
+    </section>
+
+    <section class="favorites-page-section">
+
+        <div id="favoritesContainer">
+
+            <div class="empty-state">
+
+                <div class="empty-state-icon">♡</div>
+
+                <h2>Your favorites are empty.</h2>
+
+                <p>
+                    When you find a piece you love, click the heart
+                    to save it here.
+                </p>
+
+                <a href="shop.html" class="button button-dark">
+                    Browse Artwork
+                </a>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+<footer class="site-footer">
+
+    <div class="footer-main">
+
+        <div class="footer-brand">
+            <a href="../index.html" class="logo footer-logo">
+                <span class="logo-main">Savannah's</span>
+                <span class="logo-sub">Art Works</span>
+            </a>
+            <p>Original artwork made with creativity, patience, and heart.</p>
+        </div>
+
+        <div class="footer-column">
+            <h3>Shop</h3>
+            <a href="shop.html">All Artwork</a>
+            <a href="shop.html?category=paintings">Paintings</a>
+            <a href="shop.html?category=landscapes">Landscapes</a>
+            <a href="shop.html?category=nature">Nature</a>
+        </div>
+
+        <div class="footer-column">
+            <h3>About</h3>
+            <a href="about.html">About Savannah</a>
+            <a href="contact.html">Contact</a>
+            <a href="account.html">My Account</a>
+            <a href="favorites.html">Favorites</a>
+        </div>
+
+        <div class="footer-column">
+            <h3>Information</h3>
+            <a href="#">Shipping</a>
+            <a href="#">Returns</a>
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms</a>
+        </div>
+
+    </div>
+
+    <div class="footer-bottom">
+        <p>© <span id="currentYear"></span> Savannah's Art Works. All rights reserved.</p>
+        <div class="social-links">
+            <a href="#">Instagram</a>
+            <a href="#">Facebook</a>
+        </div>
+    </div>
+
+</footer>
+
+<script src="../script.js"></script>
+```
+
+</body>
+</html>

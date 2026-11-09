@@ -1,0 +1,826 @@
+<!-- pages/shop.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Shop | Savannah's Art Works</title>
+
+    <meta
+        name="description"
+        content="Browse original paintings and artwork from Savannah's Art Works."
+    >
+
+    <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+
+    <!-- ANNOUNCEMENT BAR -->
+
+    <div class="announcement-bar">
+        <p>Original artwork • Handmade with care • Made to be enjoyed</p>
+    </div>
+
+
+    <!-- HEADER -->
+
+    <header class="site-header">
+
+        <div class="header-inner">
+
+            <a href="../index.html" class="logo">
+                <span class="logo-main">Savannah's</span>
+                <span class="logo-sub">Art Works</span>
+            </a>
+
+            <nav class="main-navigation" aria-label="Main navigation">
+                <a href="../index.html">Home</a>
+                <a href="shop.html" class="active">Shop</a>
+                <a href="about.html">About</a>
+                <a href="contact.html">Contact</a>
+            </nav>
+
+            <div class="header-actions">
+
+                <button
+                    class="header-icon"
+                    id="searchButton"
+                    aria-label="Search"
+                    type="button"
+                >
+                    ⌕
+                </button>
+
+                <a
+                    href="account.html"
+                    class="header-icon"
+                    aria-label="Account"
+                >
+                    ♙
+                </a>
+
+                <a
+                    href="cart.html"
+                    class="header-icon cart-button"
+                    aria-label="Shopping cart"
+                >
+                    ♧
+                    <span class="cart-count">0</span>
+                </a>
+
+                <button
+                    class="mobile-menu-button"
+                    id="mobileMenuButton"
+                    aria-label="Open menu"
+                    type="button"
+                >
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- MOBILE NAVIGATION -->
+
+        <nav class="mobile-navigation" id="mobileNavigation">
+
+            <a href="../index.html">Home</a>
+            <a href="shop.html">Shop</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+            <a href="account.html">My Account</a>
+            <a href="cart.html">Cart</a>
+
+        </nav>
+
+    </header>
+
+
+    <!-- SEARCH OVERLAY -->
+
+    <div class="search-overlay" id="searchOverlay">
+
+        <div class="search-box">
+
+            <button
+                class="search-close"
+                id="searchClose"
+                type="button"
+                aria-label="Close search"
+            >
+                ×
+            </button>
+
+            <p class="eyebrow">SEARCH THE COLLECTION</p>
+
+            <h2>Find something beautiful.</h2>
+
+            <div class="search-input-wrapper">
+
+                <input
+                    type="search"
+                    id="siteSearch"
+                    placeholder="Search artwork..."
+                    autocomplete="off"
+                >
+
+                <button
+                    id="performSearch"
+                    type="button"
+                >
+                    Search
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <main>
+
+        <!-- PAGE HERO -->
+
+        <section class="page-hero">
+
+            <div class="page-hero-content">
+
+                <p class="eyebrow">THE COLLECTION</p>
+
+                <h1>Original Artwork</h1>
+
+                <p>
+                    Explore paintings and artwork created by Savannah.
+                    Every piece is made individually and has its own story.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- SHOP -->
+
+        <section class="shop-section">
+
+            <div class="shop-toolbar">
+
+                <div>
+                    <p class="shop-result-count">
+                        Showing <span id="productCount">8</span> pieces
+                    </p>
+                </div>
+
+                <div class="shop-controls">
+
+                    <label for="categoryFilter">
+                        Category
+                    </label>
+
+                    <select id="categoryFilter">
+                        <option value="all">All Artwork</option>
+                        <option value="paintings">Paintings</option>
+                        <option value="landscapes">Landscapes</option>
+                        <option value="nature">Nature</option>
+                        <option value="abstract">Abstract</option>
+                    </select>
+
+                    <label for="sortProducts">
+                        Sort
+                    </label>
+
+                    <select id="sortProducts">
+
+                        <option value="featured">
+                            Featured
+                        </option>
+
+                        <option value="price-low">
+                            Price: Low to High
+                        </option>
+
+                        <option value="price-high">
+                            Price: High to Low
+                        </option>
+
+                        <option value="name">
+                            Name
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+            <div class="product-grid shop-product-grid" id="productGrid">
+
+
+                <!-- PRODUCT 1 -->
+
+                <article
+                    class="product-card shop-product"
+                    data-category="paintings landscapes"
+                    data-price="285"
+                    data-name="Mountain Light"
+                >
+
+                    <div class="product-image">
+
+                        <span class="product-badge">
+                            Featured
+                        </span>
+
+                        <button
+                            class="favorite-button"
+                            type="button"
+                            aria-label="Add Mountain Light to favorites"
+                            data-product-id="mountain-light"
+                        >
+                            ♡
+                        </button>
+
+                        <a href="product.html?id=mountain-light">
+
+                            <div class="placeholder-art art-mountain">
+                                <span>Artwork<br>Photo</span>
+                            </div>
+
+                        </a>
+
+                    </div>
+
+                    <div class="product-information">
+
+                        <p class="product-artist">
+                            Savannah
+                        </p>
+
+                        <h3>
+                            <a href="product.html?id=mountain-light">
+                                Mountain Light
+                            </a>
+                        </h3>
+
+                        <p class="product-details">
+                            Original Painting · 16 × 20 in.
+                        </p>
+
+                        <div class="product-bottom">
+
+                            <span class="product-price">
+                                $285.00
+                            </span>
+
+                            <span class="product-availability">
+                                Available
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+
+                <!-- PRODUCT 2 -->
+
+                <article
+                    class="product-card shop-product"
+                    data-category="paintings landscapes"
+                    data-price="325"
+                    data-name="Golden Meadow"
+                >
+
+                    <div class="product-image">
+
+                        <button
+                            class="favorite-button"
+                            type="button"
+                            aria-label="Add Golden Meadow to favorites"
+                            data-product-id="golden-meadow"
+                        >
+                            ♡
+                        </button>
+
+                        <a href="product.html?id=golden-meadow">
+
+                            <div class="placeholder-art art-meadow">
+                                <span>Artwork<br>Photo</span>
+                            </div>
+
+                        </a>
+
+                    </div>
+
+                    <div class="product-information">
+
+                        <p class="product-artist">
+                            Savannah
+                        </p>
+
+                        <h3>
+                            <a href="product.html?id=golden-meadow">
+                                Golden Meadow
+                            </a>
+                        </h3>
+
+                        <p class="product-details">
+                            Original Painting · 18 × 24 in.
+                        </p>
+
+                        <div class="product-bottom">
+
+                            <span class="product-price">
+                                $325.00
+                            </span>
+
+                            <span class="product-availability">
+                                Available
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+
+                <!-- PRODUCT 3 -->
+
+                <article
+                    class="product-card shop-product"
+                    data-category="nature paintings"
+                    data-price="175"
+                    data-name="Wildflower Study"
+                >
+
+                    <div class="product-image">
+
+                        <span class="product-badge">
+                            New
+                        </span>
+
+                        <button
+                            class="favorite-button"
+                            type="button"
+                            aria-label="Add Wildflower Study to favorites"
+                            data-product-id="wildflower-study"
+                        >
+                            ♡
+                        </button>
+
+                        <a href="product.html?id=wildflower-study">
+
+                            <div class="placeholder-art art-flower">
+                                <span>Artwork<br>Photo</span>
+                            </div>
+
+                        </a>
+
+                    </div>
+
+                    <div class="product-information">
+
+                        <p class="product-artist">
+                            Savannah
+                        </p>
+
+                        <h3>
+                            <a href="product.html?id=wildflower-study">
+                                Wildflower Study
+                            </a>
+                        </h3>
+
+                        <p class="product-details">
+                            Original Artwork · 11 × 14 in.
+                        </p>
+
+                        <div class="product-bottom">
+
+                            <span class="product-price">
+                                $175.00
+                            </span>
+
+                            <span class="product-availability">
+                                Available
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+
+                <!-- PRODUCT 4 -->
+
+                <article
+                    class="product-card shop-product"
+                    data-category="paintings landscapes"
+                    data-price="310"
+                    data-name="Quiet Waters"
+                >
+
+                    <div class="product-image">
+
+                        <button
+                            class="favorite-button"
+                            type="button"
+                            aria-label="Add Quiet Waters to favorites"
+                            data-product-id="quiet-waters"
+                        >
+                            ♡
+                        </button>
+
+                        <a href="product.html?id=quiet-waters">
+
+                            <div class="placeholder-art art-water">
+                                <span>Artwork<br>Photo</span>
+                            </div>
+
+                        </a>
+
+                    </div>
+
+                    <div class="product-information">
+
+                        <p class="product-artist">
+                            Savannah
+                        </p>
+
+                        <h3>
+                            <a href="product.html?id=quiet-waters">
+                                Quiet Waters
+                            </a>
+                        </h3>
+
+                        <p class="product-details">
+                            Original Painting · 20 × 20 in.
+                        </p>
+
+                        <div class="product-bottom">
+
+                            <span class="product-price">
+                                $310.00
+                            </span>
+
+                            <span class="product-availability">
+                                Available
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+
+                <!-- PRODUCT 5 -->
+
+                <article
+                    class="product-card shop-product"
+                    data-category="abstract"
+                    data-price="220"
+                    data-name="Wild Horizon"
+                >
+
+                    <div class="product-image">
+
+                        <button
+                            class="favorite-button"
+                            type="button"
+                            aria-label="Add Wild Horizon to favorites"
+                            data-product-id="wild-horizon"
+                        >
+                            ♡
+                        </button>
+
+                        <a href="product.html?id=wild-horizon">
+
+                            <div class="placeholder-art art-abstract">
+                                <span>Artwork<br>Photo</span>
+                            </div>
+
+                        </a>
+
+                    </div>
+
+                    <div class="product-information">
+
+                        <p class="product-artist">
+                            Savannah
+                        </p>
+
+                        <h3>
+                            <a href="product.html?id=wild-horizon">
+                                Wild Horizon
+                            </a>
+                        </h3>
+
+                        <p class="product-details">
+                            Original Artwork · 16 × 20 in.
+                        </p>
+
+                        <div class="product-bottom">
+
+                            <span class="product-price">
+                                $220.00
+                            </span>
+
+                            <span class="product-availability">
+                                Available
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+
+                <!-- PRODUCT 6 -->
+
+                <article
+                    class="product-card shop-product"
+                    data-category="nature"
+                    data-price="195"
+                    data-name="Summer Garden"
+                >
+
+                    <div class="product-image">
+
+                        <button
+                            class="favorite-button"
+                            type="button"
+                            aria-label="Add Summer Garden to favorites"
+                            data-product-id="summer-garden"
+                        >
+                            ♡
+                        </button>
+
+                        <a href="product.html?id=summer-garden">
+
+                            <div class="placeholder-art art-garden">
+                                <span>Artwork<br>Photo</span>
+                            </div>
+
+                        </a>
+
+                    </div>
+
+                    <div class="product-information">
+
+                        <p class="product-artist">
+                            Savannah
+                        </p>
+
+                        <h3>
+                            <a href="product.html?id=summer-garden">
+                                Summer Garden
+                            </a>
+                        </h3>
+
+                        <p class="product-details">
+                            Original Artwork · 12 × 16 in.
+                        </p>
+
+                        <div class="product-bottom">
+
+                            <span class="product-price">
+                                $195.00
+                            </span>
+
+                            <span class="product-availability">
+                                Available
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+
+                <!-- PRODUCT 7 -->
+
+                <article
+                    class="product-card shop-product"
+                    data-category="paintings landscapes"
+                    data-price="390"
+                    data-name="Mountain Morning"
+                >
+
+                    <div class="product-image">
+
+                        <span class="product-badge">
+                            Featured
+                        </span>
+
+                        <button
+                            class="favorite-button"
+                            type="button"
+                            aria-label="Add Mountain Morning to favorites"
+                            data-product-id="mountain-morning"
+                        >
+                            ♡
+                        </button>
+
+                        <a href="product.html?id=mountain-morning">
+
+                            <div class="placeholder-art art-mountain">
+                                <span>Artwork<br>Photo</span>
+                            </div>
+
+                        </a>
+
+                    </div>
+
+                    <div class="product-information">
+
+                        <p class="product-artist">
+                            Savannah
+                        </p>
+
+                        <h3>
+                            <a href="product.html?id=mountain-morning">
+                                Mountain Morning
+                            </a>
+                        </h3>
+
+                        <p class="product-details">
+                            Original Painting · 24 × 30 in.
+                        </p>
+
+                        <div class="product-bottom">
+
+                            <span class="product-price">
+                                $390.00
+                            </span>
+
+                            <span class="product-availability">
+                                Available
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+
+                <!-- PRODUCT 8 -->
+
+                <article
+                    class="product-card shop-product"
+                    data-category="abstract"
+                    data-price="250"
+                    data-name="Earth & Sky"
+                >
+
+                    <div class="product-image">
+
+                        <button
+                            class="favorite-button"
+                            type="button"
+                            aria-label="Add Earth and Sky to favorites"
+                            data-product-id="earth-and-sky"
+                        >
+                            ♡
+                        </button>
+
+                        <a href="product.html?id=earth-and-sky">
+
+                            <div class="placeholder-art art-earth">
+                                <span>Artwork<br>Photo</span>
+                            </div>
+
+                        </a>
+
+                    </div>
+
+                    <div class="product-information">
+
+                        <p class="product-artist">
+                            Savannah
+                        </p>
+
+                        <h3>
+                            <a href="product.html?id=earth-and-sky">
+                                Earth &amp; Sky
+                            </a>
+                        </h3>
+
+                        <p class="product-details">
+                            Original Artwork · 18 × 24 in.
+                        </p>
+
+                        <div class="product-bottom">
+
+                            <span class="product-price">
+                                $250.00
+                            </span>
+
+                            <span class="product-availability">
+                                Available
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- FOOTER -->
+
+    <footer class="site-footer">
+
+        <div class="footer-main">
+
+            <div class="footer-brand">
+
+                <a href="../index.html" class="logo footer-logo">
+                    <span class="logo-main">Savannah's</span>
+                    <span class="logo-sub">Art Works</span>
+                </a>
+
+                <p>
+                    Original artwork made with creativity,
+                    patience, and heart.
+                </p>
+
+            </div>
+
+            <div class="footer-column">
+
+                <h3>Shop</h3>
+
+                <a href="shop.html">All Artwork</a>
+                <a href="shop.html?category=paintings">Paintings</a>
+                <a href="shop.html?category=landscapes">Landscapes</a>
+                <a href="shop.html?category=nature">Nature</a>
+                <a href="shop.html?category=abstract">Abstract</a>
+
+            </div>
+
+            <div class="footer-column">
+
+                <h3>About</h3>
+
+                <a href="about.html">About Savannah</a>
+                <a href="contact.html">Contact</a>
+                <a href="account.html">My Account</a>
+                <a href="favorites.html">Favorites</a>
+
+            </div>
+
+            <div class="footer-column">
+
+                <h3>Information</h3>
+
+                <a href="#">Shipping</a>
+                <a href="#">Returns</a>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms</a>
+
+            </div>
+
+        </div>
+
+        <div class="footer-bottom">
+
+            <p>
+                © <span id="currentYear"></span>
+                Savannah's Art Works. All rights reserved.
+            </p>
+
+            <div class="social-links">
+                <a href="#">Instagram</a>
+                <a href="#">Facebook</a>
+            </div>
+
+        </div>
+
+    </footer>
+
+
+    <script src="../script.js"></script>
+
+</body>
+</html>

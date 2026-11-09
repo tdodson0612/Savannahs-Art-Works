@@ -1,0 +1,604 @@
+```html
+<!-- /Users/terrydodson/savannahs_art_works/index.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Savannah's Art Works | Original Art & Paintings</title>
+
+    <meta
+        name="description"
+        content="Original paintings and artwork by Savannah."
+    >
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Announcement -->
+    <div class="announcement-bar">
+        <p>Original artwork • Handmade with care • Made to be enjoyed</p>
+    </div>
+
+    <!-- Header -->
+    <header class="site-header">
+        <div class="header-inner">
+
+            <a href="index.html" class="logo">
+                <span class="logo-main">Savannah's</span>
+                <span class="logo-sub">Art Works</span>
+            </a>
+
+            <nav class="main-navigation" aria-label="Main navigation">
+                <a href="index.html" class="active">Home</a>
+                <a href="pages/shop.html">Shop</a>
+                <a href="pages/about.html">About</a>
+                <a href="pages/contact.html">Contact</a>
+            </nav>
+
+            <div class="header-actions">
+                <button class="header-icon" id="searchButton" type="button" aria-label="Search">
+                    <span>⌕</span>
+                </button>
+
+                <a href="pages/account.html" class="header-icon" aria-label="Account">
+                    <span>♙</span>
+                </a>
+
+                <a href="pages/cart.html" class="header-icon cart-button" aria-label="Shopping cart">
+                    <span>♧</span>
+                    <span class="cart-count">0</span>
+                </a>
+
+                <button
+                    class="mobile-menu-button"
+                    id="mobileMenuButton"
+                    type="button"
+                    aria-label="Open menu"
+                    aria-expanded="false"
+                >
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+
+        <nav class="mobile-navigation" id="mobileNavigation" aria-label="Mobile navigation">
+            <a href="index.html">Home</a>
+            <a href="pages/shop.html">Shop</a>
+            <a href="pages/about.html">About</a>
+            <a href="pages/contact.html">Contact</a>
+            <a href="pages/account.html">My Account</a>
+            <a href="pages/cart.html">Cart</a>
+        </nav>
+    </header>
+
+    <!-- Search -->
+    <div class="search-overlay" id="searchOverlay" aria-hidden="true">
+        <div class="search-box">
+
+            <button class="search-close" id="searchClose" type="button" aria-label="Close search">
+                ×
+            </button>
+
+            <p class="eyebrow">SEARCH THE COLLECTION</p>
+
+            <h2>Find something beautiful.</h2>
+
+            <div class="search-input-wrapper">
+                <label for="siteSearch" class="sr-only">Search artwork</label>
+
+                <input
+                    type="search"
+                    id="siteSearch"
+                    placeholder="Search artwork..."
+                    autocomplete="off"
+                >
+
+                <button id="performSearch" type="button">
+                    Search
+                </button>
+            </div>
+
+            <p class="search-message" id="searchMessage"></p>
+        </div>
+    </div>
+
+    <main>
+
+        <!-- Hero -->
+        <section class="hero">
+
+            <div class="hero-image">
+                <div class="hero-art">
+                    <span>Featured<br>Artwork</span>
+                </div>
+            </div>
+
+            <div class="hero-content">
+                <p class="eyebrow">ORIGINAL ARTWORK</p>
+
+                <h1>
+                    Art made to make
+                    <em>your space</em>
+                    feel like yours.
+                </h1>
+
+                <p class="hero-description">
+                    Original paintings and handmade artwork created
+                    with imagination, patience, and a whole lot of heart.
+                </p>
+
+                <div class="hero-buttons">
+                    <a href="pages/shop.html" class="button button-dark">
+                        Shop Original Art
+                    </a>
+
+                    <a href="pages/shop.html" class="button button-outline">
+                        Explore Collections
+                    </a>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Introduction -->
+        <section class="intro-section">
+            <div class="section-narrow">
+
+                <p class="eyebrow">WELCOME</p>
+
+                <h2>
+                    A little piece of Savannah
+                    for your home.
+                </h2>
+
+                <p>
+                    Every piece is created to have its own personality.
+                    Whether you're looking for something peaceful,
+                    colorful, dramatic, or simply beautiful, you'll find
+                    artwork made with a personal touch.
+                </p>
+
+            </div>
+        </section>
+
+        <!-- Categories -->
+        <section class="categories-section">
+
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">EXPLORE</p>
+                    <h2>Shop by category</h2>
+                </div>
+
+                <a href="pages/shop.html" class="text-link">
+                    View all artwork →
+                </a>
+            </div>
+
+            <div class="category-grid">
+
+                <a href="pages/shop.html?category=paintings" class="category-card">
+                    <div class="category-image category-paintings">
+                        <span>Original<br>Paintings</span>
+                    </div>
+
+                    <div class="category-info">
+                        <h3>Original Paintings</h3>
+                        <span>Explore →</span>
+                    </div>
+                </a>
+
+                <a href="pages/shop.html?category=landscapes" class="category-card">
+                    <div class="category-image category-landscapes">
+                        <span>Landscapes</span>
+                    </div>
+
+                    <div class="category-info">
+                        <h3>Landscapes</h3>
+                        <span>Explore →</span>
+                    </div>
+                </a>
+
+                <a href="pages/shop.html?category=nature" class="category-card">
+                    <div class="category-image category-nature">
+                        <span>Nature</span>
+                    </div>
+
+                    <div class="category-info">
+                        <h3>Nature</h3>
+                        <span>Explore →</span>
+                    </div>
+                </a>
+
+                <a href="pages/shop.html?category=abstract" class="category-card">
+                    <div class="category-image category-abstract">
+                        <span>Abstract</span>
+                    </div>
+
+                    <div class="category-info">
+                        <h3>Abstract</h3>
+                        <span>Explore →</span>
+                    </div>
+                </a>
+
+            </div>
+        </section>
+
+        <!-- Featured Products -->
+        <section class="products-section">
+
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">THE COLLECTION</p>
+                    <h2>Featured artwork</h2>
+                </div>
+
+                <a href="pages/shop.html" class="text-link">
+                    Shop everything →
+                </a>
+            </div>
+
+            <div class="product-grid">
+
+                <article class="product-card" data-name="Mountain Light" data-category="landscapes paintings">
+                    <div class="product-image">
+
+                        <span class="product-badge">Featured</span>
+
+                        <button
+                            class="favorite-button"
+                            type="button"
+                            aria-label="Add Mountain Light to favorites"
+                            data-product-id="mountain-light"
+                        >
+                            ♡
+                        </button>
+
+                        <a href="pages/product.html?id=mountain-light">
+                            <div class="placeholder-art art-mountain">
+                                <span>Artwork<br>Photo</span>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="product-information">
+                        <p class="product-artist">Savannah</p>
+
+                        <h3>
+                            <a href="pages/product.html?id=mountain-light">
+                                Mountain Light
+                            </a>
+                        </h3>
+
+                        <p class="product-details">
+                            Original Painting · 16 × 20 in.
+                        </p>
+
+                        <div class="product-bottom">
+                            <span class="product-price">$285.00</span>
+                            <span class="product-availability">Available</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="product-card" data-name="Golden Meadow" data-category="landscapes nature paintings">
+                    <div class="product-image">
+
+                        <button
+                            class="favorite-button"
+                            type="button"
+                            aria-label="Add Golden Meadow to favorites"
+                            data-product-id="golden-meadow"
+                        >
+                            ♡
+                        </button>
+
+                        <a href="pages/product.html?id=golden-meadow">
+                            <div class="placeholder-art art-meadow">
+                                <span>Artwork<br>Photo</span>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="product-information">
+                        <p class="product-artist">Savannah</p>
+
+                        <h3>
+                            <a href="pages/product.html?id=golden-meadow">
+                                Golden Meadow
+                            </a>
+                        </h3>
+
+                        <p class="product-details">
+                            Original Painting · 18 × 24 in.
+                        </p>
+
+                        <div class="product-bottom">
+                            <span class="product-price">$325.00</span>
+                            <span class="product-availability">Available</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="product-card" data-name="Wildflower Study" data-category="nature paintings">
+                    <div class="product-image">
+
+                        <span class="product-badge">New</span>
+
+                        <button
+                            class="favorite-button"
+                            type="button"
+                            aria-label="Add Wildflower Study to favorites"
+                            data-product-id="wildflower-study"
+                        >
+                            ♡
+                        </button>
+
+                        <a href="pages/product.html?id=wildflower-study">
+                            <div class="placeholder-art art-flower">
+                                <span>Artwork<br>Photo</span>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="product-information">
+                        <p class="product-artist">Savannah</p>
+
+                        <h3>
+                            <a href="pages/product.html?id=wildflower-study">
+                                Wildflower Study
+                            </a>
+                        </h3>
+
+                        <p class="product-details">
+                            Original Artwork · 11 × 14 in.
+                        </p>
+
+                        <div class="product-bottom">
+                            <span class="product-price">$175.00</span>
+                            <span class="product-availability">Available</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="product-card" data-name="Quiet Waters" data-category="landscapes paintings">
+                    <div class="product-image">
+
+                        <button
+                            class="favorite-button"
+                            type="button"
+                            aria-label="Add Quiet Waters to favorites"
+                            data-product-id="quiet-waters"
+                        >
+                            ♡
+                        </button>
+
+                        <a href="pages/product.html?id=quiet-waters">
+                            <div class="placeholder-art art-water">
+                                <span>Artwork<br>Photo</span>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="product-information">
+                        <p class="product-artist">Savannah</p>
+
+                        <h3>
+                            <a href="pages/product.html?id=quiet-waters">
+                                Quiet Waters
+                            </a>
+                        </h3>
+
+                        <p class="product-details">
+                            Original Painting · 20 × 20 in.
+                        </p>
+
+                        <div class="product-bottom">
+                            <span class="product-price">$310.00</span>
+                            <span class="product-availability">Available</span>
+                        </div>
+                    </div>
+                </article>
+
+            </div>
+        </section>
+
+        <!-- Collection Feature -->
+        <section class="collection-feature">
+
+            <div class="collection-image">
+                <div class="collection-placeholder">
+                    <span>Mountain<br>Collection</span>
+                </div>
+            </div>
+
+            <div class="collection-content">
+
+                <p class="eyebrow">FEATURED COLLECTION</p>
+
+                <h2>
+                    Find your way
+                    <em>to the mountains.</em>
+                </h2>
+
+                <p>
+                    Peaceful landscapes, dramatic skies, and the feeling
+                    of standing somewhere beautiful. Explore the Mountain
+                    Collection.
+                </p>
+
+                <a
+                    href="pages/shop.html?collection=mountains"
+                    class="button button-dark"
+                >
+                    Explore the Collection
+                </a>
+
+            </div>
+        </section>
+
+        <!-- Artist -->
+        <section class="artist-section">
+
+            <div class="artist-image">
+                <div class="artist-placeholder">
+                    <span>Artist<br>Photo</span>
+                </div>
+            </div>
+
+            <div class="artist-content">
+
+                <p class="eyebrow">THE ARTIST</p>
+
+                <h2>Meet Savannah.</h2>
+
+                <p>
+                    I'm Savannah, the artist behind Savannah's Art Works.
+                    I believe art doesn't have to be complicated to be
+                    meaningful. Sometimes the simplest painting can bring
+                    the biggest feeling into a room.
+                </p>
+
+                <p>
+                    Each piece is made by hand, one at a time, with the
+                    hope that it finds the right home.
+                </p>
+
+                <a href="pages/about.html" class="text-link">
+                    Learn more about Savannah →
+                </a>
+
+            </div>
+        </section>
+
+        <!-- Favorites -->
+        <section class="favorites-section">
+
+            <div class="section-heading centered">
+                <div>
+                    <p class="eyebrow">LOVED BY ART LOVERS</p>
+                    <h2>Customer favorites</h2>
+                </div>
+            </div>
+
+            <div class="favorite-message">
+                <p>Beautiful pieces don't stay available forever.</p>
+
+                <a href="pages/shop.html" class="button button-dark">
+                    Browse the Collection
+                </a>
+            </div>
+        </section>
+
+        <!-- Newsletter -->
+        <section class="newsletter-section">
+
+            <div class="newsletter-inner">
+
+                <p class="eyebrow">STAY IN THE LOOP</p>
+
+                <h2>New art, fresh inspiration.</h2>
+
+                <p>
+                    Sign up to hear about new artwork, collections,
+                    studio updates, and special releases.
+                </p>
+
+                <form class="newsletter-form" id="newsletterForm">
+
+                    <label for="newsletterEmail" class="sr-only">
+                        Email address
+                    </label>
+
+                    <input
+                        type="email"
+                        id="newsletterEmail"
+                        placeholder="Your email address"
+                        required
+                    >
+
+                    <button type="submit" class="button button-dark">
+                        Subscribe
+                    </button>
+                </form>
+
+                <p class="newsletter-message" id="newsletterMessage"></p>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+
+        <div class="footer-main">
+
+            <div class="footer-brand">
+
+                <a href="index.html" class="logo footer-logo">
+                    <span class="logo-main">Savannah's</span>
+                    <span class="logo-sub">Art Works</span>
+                </a>
+
+                <p>
+                    Original artwork made with creativity,
+                    patience, and heart.
+                </p>
+            </div>
+
+            <div class="footer-column">
+                <h3>Shop</h3>
+                <a href="pages/shop.html">All Artwork</a>
+                <a href="pages/shop.html?category=paintings">Paintings</a>
+                <a href="pages/shop.html?category=landscapes">Landscapes</a>
+                <a href="pages/shop.html?category=nature">Nature</a>
+                <a href="pages/shop.html?category=abstract">Abstract</a>
+            </div>
+
+            <div class="footer-column">
+                <h3>About</h3>
+                <a href="pages/about.html">About Savannah</a>
+                <a href="pages/contact.html">Contact</a>
+                <a href="pages/account.html">My Account</a>
+                <a href="pages/favorites.html">Favorites</a>
+            </div>
+
+            <div class="footer-column">
+                <h3>Information</h3>
+                <a href="#">Shipping</a>
+                <a href="#">Returns</a>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms</a>
+            </div>
+
+        </div>
+
+        <div class="footer-bottom">
+
+            <p>
+                © <span id="currentYear"></span> Savannah's Art Works.
+                All rights reserved.
+            </p>
+
+            <div class="social-links">
+                <a href="#" aria-label="Instagram">Instagram</a>
+                <a href="#" aria-label="Facebook">Facebook</a>
+            </div>
+
+        </div>
+
+    </footer>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
+```
