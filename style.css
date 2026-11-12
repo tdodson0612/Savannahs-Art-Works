@@ -16,11 +16,28 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-    background: var(--cream);
+    background: #1d2a3a;               /* dark blue, shows while the photo loads */
     color: var(--ink);
     font-family: var(--sans);
     font-size: 15px;
     line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main { flex: 1; }
+
+/* Ocean painting behind every page. It stays still while the page scrolls.
+   The dark layer on top keeps the white text and cards easy to read. */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background:
+        linear-gradient(rgba(16, 24, 36, 0.45), rgba(16, 24, 36, 0.6)),
+        url("assets/images/savannahsbackground.jpg") center / cover no-repeat;
 }
 
 img { display: block; max-width: 100%; }
@@ -70,16 +87,20 @@ a { color: inherit; }
 /* ---------- Intro ---------- */
 
 .intro {
-    padding: 70px 0 40px;
+    padding: 80px 0 56px;
     text-align: center;
+    color: #fff;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
 }
+
+.intro h1 { color: #fff; }
 
 .eyebrow {
     font-size: 12px;
     font-weight: 600;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--brown);
+    color: var(--cream-dark);
     margin-bottom: 10px;
 }
 
@@ -92,23 +113,29 @@ h1 {
 }
 
 .intro-text {
-    color: var(--muted);
+    color: var(--cream);
     margin-top: 14px;
 }
 
 /* ---------- Gallery ---------- */
 
-.gallery-section { padding: 0 0 100px; }
+.gallery-section { padding: 0 0 110px; }
 
+/* Wide gaps so the ocean shows between the cards
+   and the cream and blue don't crowd each other. */
 .gallery {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 32px;
+    gap: 56px;
+    max-width: 1060px;
+    margin: 0 auto;
 }
 
 .art-card {
     background: var(--paper);
-    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
     display: flex;
     flex-direction: column;
 }
@@ -216,9 +243,17 @@ h1 {
 
 /* ---------- Cart page ---------- */
 
-.cart-page { padding: 60px 0 100px; }
+.cart-page { padding: 70px 0 110px; }
 
-.cart-container { max-width: 760px; }
+/* The cart sits on a cream card over the ocean. */
+.cart-container {
+    max-width: 760px;
+    width: calc(100% - 32px);
+    background: var(--paper);
+    border-radius: 6px;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+    padding: 44px 40px;
+}
 
 .cart-container h1 { margin-bottom: 30px; }
 
@@ -255,7 +290,7 @@ h1 {
 }
 
 .cart-summary {
-    background: var(--paper);
+    background: var(--cream);
     border: 1px solid var(--line);
     padding: 24px;
     margin: 30px 0;
@@ -344,6 +379,9 @@ h1 {
     .logo { font-size: 22px; }
     .intro { padding: 50px 0 30px; }
     .gallery-section { padding-bottom: 70px; }
+    .gallery { gap: 40px; }
+    .cart-page { padding: 40px 0 70px; }
+    .cart-container { padding: 30px 20px; }
     .cart-item { grid-template-columns: 70px 1fr auto; gap: 12px; }
     .cart-thumb { width: 70px; }
 }
