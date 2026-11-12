@@ -1,986 +1,242 @@
-/* script.js */
+/* script.js - cart and PayPal checkout for Savannah's Art Works.
+   You shouldn't need to edit this file. Artwork and settings are in artwork.js. */
 
-document.addEventListener("DOMContentLoaded", function () {
+const CART_KEY = "savannahCart";
 
-```
-/* ==========================================
-   CURRENT YEAR
-   ========================================== */
+/* ---------- Helpers ---------- */
 
-const yearElements = document.querySelectorAll("#currentYear");
+function money(amount) {
+    return "$" + amount.toFixed(2);
+}
 
-yearElements.forEach(function (element) {
-    element.textContent = new Date().getFullYear();
-});
+function escapeHTML(value) {
+    const div = document.createElement("div");
+    div.textContent = String(value);
+    return div.innerHTML;
+}
 
-
-/* ==========================================
-   MOBILE MENU
-   ========================================== */
-
-const mobileMenuButton = document.getElementById("mobileMenuButton");
-const mobileNavigation = document.getElementById("mobileNavigation");
-
-if (mobileMenuButton && mobileNavigation) {
-
-    mobileMenuButton.addEventListener("click", function () {
-
-        mobileNavigation.classList.toggle("open");
-        mobileMenuButton.classList.toggle("open");
-
+function findArtwork(id) {
+    return ARTWORK.find(function (piece) {
+        return piece.id === id;
     });
-
 }
 
-
-/* ==========================================
-   SEARCH OVERLAY
-   ========================================== */
-
-const searchButton = document.getElementById("searchButton");
-const searchOverlay = document.getElementById("searchOverlay");
-const searchClose = document.getElementById("searchClose");
-const siteSearch = document.getElementById("siteSearch");
-const performSearch = document.getElementById("performSearch");
-
-function openSearch() {
-
-    if (!searchOverlay) {
-        return;
-    }
-
-    searchOverlay.classList.add("open");
-
-    if (siteSearch) {
-        setTimeout(function () {
-            siteSearch.focus();
-        }, 100);
-    }
-
-}
-
-function closeSearch() {
-
-    if (!searchOverlay) {
-        return;
-    }
-
-    searchOverlay.classList.remove("open");
-
-}
-
-function performSiteSearch() {
-
-    if (!siteSearch) {
-        return;
-    }
-
-    const searchTerm = siteSearch.value.trim();
-
-    if (searchTerm === "") {
-        return;
-    }
-
-    window.location.href =
-        "shop.html?search=" +
-        encodeURIComponent(searchTerm);
-
-}
-
-if (searchButton) {
-    searchButton.addEventListener("click", openSearch);
-}
-
-if (searchClose) {
-    searchClose.addEventListener("click", closeSearch);
-}
-
-if (searchOverlay) {
-
-    searchOverlay.addEventListener("click", function (event) {
-
-        if (event.target === searchOverlay) {
-            closeSearch();
-        }
-
-    });
-
-}
-
-if (performSearch) {
-    performSearch.addEventListener("click", performSiteSearch);
-}
-
-if (siteSearch) {
-
-    siteSearch.addEventListener("keydown", function (event) {
-
-        if (event.key === "Enter") {
-            performSiteSearch();
-        }
-
-    });
-
-}
-
-document.addEventListener("keydown", function (event) {
-
-    if (event.key === "Escape") {
-        closeSearch();
-    }
-
-});
-
-
-/* ==========================================
-   CART
-   ========================================== */
-
-const CART_KEY = "savannahArtWorksCart";
+/* ---------- Cart storage (saved in the visitor's browser) ----------
+   The cart is a list of artwork ids. Each piece is one of a kind,
+   so there are no quantities. */
 
 function getCart() {
-
+    let ids = [];
     try {
-
-        const storedCart = localStorage.getItem(CART_KEY);
-
-        if (!storedCart) {
-            return [];
-        }
-
-        return JSON.parse(storedCart);
-
+        ids = JSON.parse(localStorage.getItem(CART_KEY)) || [];
     } catch (error) {
-
-        console.error("Could not read cart.", error);
-        return [];
-
+        ids = [];
     }
-
+    // Drop anything that's been removed from the list or marked sold.
+    return ids.filter(function (id) {
+        const piece = findArtwork(id);
+        return piece && !piece.sold;
+    });
 }
 
-function saveCart(cart) {
-
-    localStorage.setItem(CART_KEY, JSON.stringify(cart));
-
+function saveCart(ids) {
+    try {
+        localStorage.setItem(CART_KEY, JSON.stringify(ids));
+    } catch (error) {
+        // Private browsing can block storage; the page still works.
+    }
     updateCartCount();
-
 }
 
 function updateCartCount() {
-
-    const cart = getCart();
-
-    let totalItems = 0;
-
-    cart.forEach(function (item) {
-        totalItems += item.quantity;
+    const count = getCart().length;
+    document.querySelectorAll(".cart-count").forEach(function (element) {
+        element.textContent = count;
     });
-
-    const cartCounts = document.querySelectorAll(".cart-count");
-
-    cartCounts.forEach(function (element) {
-        element.textContent = totalItems;
-    });
-
 }
 
-function addToCart(productId, productName, productPrice) {
-
-    const cart = getCart();
-
-    const existingProduct = cart.find(function (item) {
-        return item.id === productId;
-    });
-
-    if (existingProduct) {
-
-        existingProduct.quantity += 1;
-
-    } else {
-
-        cart.push({
-            id: productId,
-            name: productName,
-            price: Number(productPrice),
-            quantity: 1
-        });
-
-    }
-
-    saveCart(cart);
-
-    showTemporaryMessage(
-        productName + " was added to your cart."
-    );
-
+function showToast(message) {
+    const toast = document.getElementById("toast");
+    if (!toast) return;
+    toast.textContent = message;
+    toast.classList.add("show");
+    clearTimeout(showToast.timer);
+    showToast.timer = setTimeout(function () {
+        toast.classList.remove("show");
+    }, 2200);
 }
 
+/* ---------- Home page: artwork grid ---------- */
 
-function removeFromCart(productId) {
+function renderGallery() {
+    const gallery = document.getElementById("gallery");
+    if (!gallery) return;
 
-    let cart = getCart();
-
-    cart = cart.filter(function (item) {
-        return item.id !== productId;
-    });
-
-    saveCart(cart);
-
-    renderCart();
-
-}
-
-
-function changeCartQuantity(productId, amount) {
-
-    const cart = getCart();
-
-    const product = cart.find(function (item) {
-        return item.id === productId;
-    });
-
-    if (!product) {
+    if (ARTWORK.length === 0) {
+        gallery.innerHTML = '<p class="empty">New pieces coming soon.</p>';
         return;
     }
 
-    product.quantity += amount;
+    const cart = getCart();
 
-    if (product.quantity <= 0) {
+    gallery.innerHTML = ARTWORK.map(function (piece) {
+        const photo = piece.image
+            ? '<img src="' + escapeHTML(piece.image) + '" alt="' + escapeHTML(piece.title) + '" loading="lazy">'
+            : '<div class="photo-placeholder">Photo coming soon</div>';
 
-        removeFromCart(productId);
-        return;
+        let button;
+        if (piece.sold) {
+            button = '<span class="sold-label">Sold</span>';
+        } else if (cart.includes(piece.id)) {
+            button = '<a href="cart.html" class="button button-outline">In cart, view cart</a>';
+        } else {
+            button = '<button class="button add-button" type="button" data-id="' + escapeHTML(piece.id) + '">Add to cart</button>';
+        }
 
-    }
-
-    saveCart(cart);
-
-    renderCart();
-
-}
-
-
-const addToCartButtons =
-    document.querySelectorAll(".add-to-cart-button");
-
-addToCartButtons.forEach(function (button) {
-
-    button.addEventListener("click", function () {
-
-        const productId = button.dataset.productId;
-        const productName = button.dataset.productName;
-        const productPrice = button.dataset.productPrice;
-
-        addToCart(
-            productId,
-            productName,
-            productPrice
+        return (
+            '<article class="art-card' + (piece.sold ? " is-sold" : "") + '">' +
+                '<div class="art-photo">' + photo + '</div>' +
+                '<div class="art-info">' +
+                    '<h2>' + escapeHTML(piece.title) + '</h2>' +
+                    '<p class="art-details">' + escapeHTML(piece.size) + ' &middot; ' + escapeHTML(piece.medium) + '</p>' +
+                    '<p class="art-price">' + money(piece.price) + '</p>' +
+                    button +
+                '</div>' +
+            '</article>'
         );
+    }).join("");
 
+    gallery.querySelectorAll(".add-button").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            const cart = getCart();
+            const id = btn.dataset.id;
+            if (!cart.includes(id)) cart.push(id);
+            saveCart(cart);
+            showToast(findArtwork(id).title + " added to your cart");
+            renderGallery();
+        });
     });
+}
 
-});
-
-
-/* ==========================================
-   RENDER CART
-   ========================================== */
-
-const cartContents = document.getElementById("cartContents");
+/* ---------- Cart page ---------- */
 
 function renderCart() {
+    const itemsBox = document.getElementById("cartItems");
+    if (!itemsBox) return;
 
-    if (!cartContents) {
-        return;
-    }
-
+    const summary = document.getElementById("cartSummary");
     const cart = getCart();
 
     if (cart.length === 0) {
-
-        cartContents.innerHTML = `
-            <div class="empty-cart">
-                <p class="eyebrow">YOUR CART IS EMPTY</p>
-
-                <h2>Nothing here yet.</h2>
-
-                <p>
-                    Browse the collection and find something
-                    beautiful to bring home.
-                </p>
-
-                <a href="shop.html" class="button button-dark">
-                    Browse Artwork
-                </a>
-            </div>
-        `;
-
+        itemsBox.innerHTML = '<p class="empty">Your cart is empty.</p>';
+        summary.hidden = true;
         return;
     }
-
 
     let subtotal = 0;
 
-    cart.forEach(function (item) {
+    itemsBox.innerHTML = cart.map(function (id) {
+        const piece = findArtwork(id);
+        subtotal += piece.price;
+        const thumb = piece.image
+            ? '<img src="' + escapeHTML(piece.image) + '" alt="">'
+            : '<div class="photo-placeholder small"></div>';
+        return (
+            '<div class="cart-item">' +
+                '<div class="cart-thumb">' + thumb + '</div>' +
+                '<div class="cart-item-info">' +
+                    '<h2>' + escapeHTML(piece.title) + '</h2>' +
+                    '<p class="art-details">' + escapeHTML(piece.size) + ' &middot; ' + escapeHTML(piece.medium) + '</p>' +
+                    '<button class="remove-button" type="button" data-id="' + escapeHTML(id) + '">Remove</button>' +
+                '</div>' +
+                '<div class="cart-item-price">' + money(piece.price) + '</div>' +
+            '</div>'
+        );
+    }).join("");
 
-        subtotal += item.price * item.quantity;
+    const shippingKnown = typeof SHIPPING_COST === "number";
+    document.getElementById("subtotal").textContent = money(subtotal);
+    document.getElementById("shipping").textContent = shippingKnown ? money(SHIPPING_COST) : "[ASK SAVANNAH]";
+    document.getElementById("total").textContent = money(subtotal + (shippingKnown ? SHIPPING_COST : 0));
+    summary.hidden = false;
 
-    });
+    const ready = PAYPAL_EMAIL !== "" && shippingKnown;
+    document.getElementById("checkoutButton").disabled = !ready;
+    document.getElementById("checkoutNotice").hidden = ready;
 
-
-    const shipping = subtotal >= 500 ? 0 : 25;
-    const total = subtotal + shipping;
-
-
-    let itemsHTML = "";
-
-
-    cart.forEach(function (item) {
-
-        const itemTotal = item.price * item.quantity;
-
-        itemsHTML += `
-            <div class="cart-item">
-
-                <div class="cart-item-art">
-                    <div class="placeholder-art art-mountain">
-                        <span>Artwork</span>
-                    </div>
-                </div>
-
-                <div class="cart-item-information">
-
-                    <p class="product-artist">
-                        Savannah
-                    </p>
-
-                    <h3>
-                        ${escapeHTML(item.name)}
-                    </h3>
-
-                    <p class="cart-item-price">
-                        $${item.price.toFixed(2)}
-                    </p>
-
-                    <div class="cart-item-controls">
-
-                        <div class="quantity-controls">
-
-                            <button
-                                class="quantity-button"
-                                data-cart-minus="${escapeHTML(item.id)}"
-                                aria-label="Decrease quantity"
-                            >
-                                −
-                            </button>
-
-                            <span>
-                                ${item.quantity}
-                            </span>
-
-                            <button
-                                class="quantity-button"
-                                data-cart-plus="${escapeHTML(item.id)}"
-                                aria-label="Increase quantity"
-                            >
-                                +
-                            </button>
-
-                        </div>
-
-                        <button
-                            class="remove-cart-item"
-                            data-cart-remove="${escapeHTML(item.id)}"
-                        >
-                            Remove
-                        </button>
-
-                    </div>
-
-                </div>
-
-                <div class="cart-item-total">
-                    $${itemTotal.toFixed(2)}
-                </div>
-
-            </div>
-        `;
-
-    });
-
-
-    cartContents.innerHTML = `
-
-        <div class="cart-layout">
-
-            <div class="cart-items">
-
-                <div class="cart-items-heading">
-
-                    <p class="eyebrow">
-                        YOUR ARTWORK
-                    </p>
-
-                    <h2>
-                        ${cart.length}
-                        ${cart.length === 1 ? "item" : "items"}
-                    </h2>
-
-                </div>
-
-                ${itemsHTML}
-
-            </div>
-
-
-            <aside class="cart-summary">
-
-                <p class="eyebrow">
-                    ORDER SUMMARY
-                </p>
-
-                <h2>
-                    Your order
-                </h2>
-
-                <div class="summary-row">
-                    <span>Subtotal</span>
-                    <strong>
-                        $${subtotal.toFixed(2)}
-                    </strong>
-                </div>
-
-                <div class="summary-row">
-                    <span>Shipping</span>
-                    <strong>
-                        ${shipping === 0 ? "FREE" : "$25.00"}
-                    </strong>
-                </div>
-
-                <div class="summary-total">
-                    <span>Total</span>
-                    <strong>
-                        $${total.toFixed(2)}
-                    </strong>
-                </div>
-
-                <button
-                    class="button button-dark full-width"
-                    id="checkoutButton"
-                >
-                    Continue to Checkout
-                </button>
-
-                <a
-                    href="shop.html"
-                    class="continue-shopping"
-                >
-                    ← Continue Shopping
-                </a>
-
-            </aside>
-
-        </div>
-    `;
-
-
-    const plusButtons =
-        document.querySelectorAll("[data-cart-plus]");
-
-    plusButtons.forEach(function (button) {
-
-        button.addEventListener("click", function () {
-
-            changeCartQuantity(
-                button.dataset.cartPlus,
-                1
-            );
-
+    itemsBox.querySelectorAll(".remove-button").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            saveCart(getCart().filter(function (id) {
+                return id !== btn.dataset.id;
+            }));
+            renderCart();
         });
+    });
+}
 
+/* ---------- PayPal checkout ----------
+   Sends the cart to PayPal's checkout page. The buyer pays there
+   (PayPal account or card), then comes back to cart.html?paid=1 */
+
+function startPayPalCheckout() {
+    const cart = getCart();
+    if (cart.length === 0) return;
+
+    const pageBase = window.location.href.split("?")[0].replace(/cart\.html$/, "");
+
+    const fields = {
+        cmd: "_cart",
+        upload: "1",
+        business: PAYPAL_EMAIL,
+        currency_code: "USD",
+        no_shipping: "2",               // buyer must enter a shipping address
+        handling_cart: SHIPPING_COST.toFixed(2),
+        return: pageBase + "cart.html?paid=1",
+        cancel_return: pageBase + "cart.html"
+    };
+
+    cart.forEach(function (id, index) {
+        const piece = findArtwork(id);
+        const n = index + 1;
+        fields["item_name_" + n] = piece.title + " (" + piece.size + ")";
+        fields["amount_" + n] = piece.price.toFixed(2);
+        fields["quantity_" + n] = "1";
     });
 
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "https://www.paypal.com/cgi-bin/webscr";
 
-    const minusButtons =
-        document.querySelectorAll("[data-cart-minus]");
-
-    minusButtons.forEach(function (button) {
-
-        button.addEventListener("click", function () {
-
-            changeCartQuantity(
-                button.dataset.cartMinus,
-                -1
-            );
-
-        });
-
+    Object.keys(fields).forEach(function (name) {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = name;
+        input.value = fields[name];
+        form.appendChild(input);
     });
 
+    document.body.appendChild(form);
+    form.submit();
+}
 
-    const removeButtons =
-        document.querySelectorAll("[data-cart-remove]");
+/* ---------- Start ---------- */
 
-    removeButtons.forEach(function (button) {
-
-        button.addEventListener("click", function () {
-
-            removeFromCart(
-                button.dataset.cartRemove
-            );
-
-        });
-
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll("#currentYear").forEach(function (element) {
+        element.textContent = new Date().getFullYear();
     });
 
-
-    const checkoutButton =
-        document.getElementById("checkoutButton");
-
-    if (checkoutButton) {
-
-        checkoutButton.addEventListener("click", function () {
-
-            window.location.href = "checkout.html";
-
-        });
-
+    // Back from PayPal after paying: empty the cart and say thanks.
+    if (new URLSearchParams(window.location.search).get("paid") === "1") {
+        saveCart([]);
+        const thanks = document.getElementById("thankYou");
+        if (thanks) thanks.hidden = false;
     }
 
-}
-
-
-/* ==========================================
-   SHOP FILTERING
-   ========================================== */
-
-const categoryFilter =
-    document.getElementById("categoryFilter");
-
-const shopProducts =
-    document.querySelectorAll(".shop-product");
-
-const shopResultCount =
-    document.getElementById("shopResultCount");
-
-const emptySearchState =
-    document.getElementById("emptySearchState");
-
-const clearShopFilters =
-    document.getElementById("clearShopFilters");
-
-
-function filterShopProducts() {
-
-    if (!shopProducts.length) {
-        return;
-    }
-
-    const selectedCategory =
-        categoryFilter
-            ? categoryFilter.value
-            : "all";
-
-    const urlParams =
-        new URLSearchParams(window.location.search);
-
-    const searchTerm =
-        (urlParams.get("search") || "")
-            .toLowerCase()
-            .trim();
-
-    let visibleCount = 0;
-
-
-    shopProducts.forEach(function (product) {
-
-        const productName =
-            (product.dataset.name || "")
-                .toLowerCase();
-
-        const productCategory =
-            (product.dataset.category || "")
-                .toLowerCase();
-
-        const categoryMatches =
-            selectedCategory === "all" ||
-            productCategory.includes(selectedCategory);
-
-        const searchMatches =
-            searchTerm === "" ||
-            productName.includes(searchTerm) ||
-            productCategory.includes(searchTerm);
-
-
-        if (categoryMatches && searchMatches) {
-
-            product.style.display = "";
-
-            visibleCount += 1;
-
-        } else {
-
-            product.style.display = "none";
-
-        }
-
-    });
-
-
-    if (shopResultCount) {
-
-        if (searchTerm !== "") {
-
-            shopResultCount.textContent =
-                "Search results for “" +
-                searchTerm +
-                "” — " +
-                visibleCount +
-                " found";
-
-        } else {
-
-            shopResultCount.textContent =
-                "Showing " +
-                visibleCount +
-                " artwork" +
-                (visibleCount === 1 ? "" : "s");
-
-        }
-
-    }
-
-
-    if (emptySearchState) {
-
-        emptySearchState.hidden =
-            visibleCount !== 0;
-
-    }
-
-}
-
-
-if (categoryFilter) {
-
-    const urlParams =
-        new URLSearchParams(window.location.search);
-
-    const category =
-        urlParams.get("category");
-
-    if (category) {
-
-        const validCategories = [
-            "paintings",
-            "landscapes",
-            "nature",
-            "abstract"
-        ];
-
-        if (validCategories.includes(category)) {
-            categoryFilter.value = category;
-        }
-
-    }
-
-
-    categoryFilter.addEventListener(
-        "change",
-        filterShopProducts
-    );
-
-}
-
-
-if (clearShopFilters) {
-
-    clearShopFilters.addEventListener(
-        "click",
-        function () {
-
-            if (categoryFilter) {
-                categoryFilter.value = "all";
-            }
-
-            window.history.replaceState(
-                {},
-                "",
-                "shop.html"
-            );
-
-            filterShopProducts();
-
-        }
-    );
-
-}
-
-
-filterShopProducts();
-
-
-/* ==========================================
-   FAVORITES
-   ========================================== */
-
-const FAVORITES_KEY =
-    "savannahArtWorksFavorites";
-
-function getFavorites() {
-
-    try {
-
-        const stored =
-            localStorage.getItem(FAVORITES_KEY);
-
-        return stored
-            ? JSON.parse(stored)
-            : [];
-
-    } catch (error) {
-
-        return [];
-
-    }
-
-}
-
-
-function saveFavorites(favorites) {
-
-    localStorage.setItem(
-        FAVORITES_KEY,
-        JSON.stringify(favorites)
-    );
-
-}
-
-
-const favoriteButtons =
-    document.querySelectorAll(".favorite-button");
-
-favoriteButtons.forEach(function (button) {
-
-    const productId =
-        button.dataset.productId;
-
-    const favorites =
-        getFavorites();
-
-    if (favorites.includes(productId)) {
-
-        button.classList.add("favorited");
-        button.textContent = "♥";
-
-    }
-
-
-    button.addEventListener("click", function (event) {
-
-        event.preventDefault();
-
-        const currentFavorites =
-            getFavorites();
-
-        const index =
-            currentFavorites.indexOf(productId);
-
-
-        if (index === -1) {
-
-            currentFavorites.push(productId);
-
-            button.classList.add("favorited");
-            button.textContent = "♥";
-
-        } else {
-
-            currentFavorites.splice(index, 1);
-
-            button.classList.remove("favorited");
-            button.textContent = "♡";
-
-        }
-
-        saveFavorites(currentFavorites);
-
-    });
-
-});
-
-
-/* ==========================================
-   NEWSLETTER
-   ========================================== */
-
-const newsletterForm =
-    document.getElementById("newsletterForm");
-
-const newsletterMessage =
-    document.getElementById("newsletterMessage");
-
-
-if (newsletterForm) {
-
-    newsletterForm.addEventListener(
-        "submit",
-        function (event) {
-
-            event.preventDefault();
-
-            if (newsletterMessage) {
-
-                newsletterMessage.textContent =
-                    "Thanks! You're on the list.";
-
-            }
-
-            newsletterForm.reset();
-
-        }
-    );
-
-}
-
-
-/* ==========================================
-   LOGIN FORM
-   ========================================== */
-
-const loginForm =
-    document.getElementById("loginForm");
-
-const loginMessage =
-    document.getElementById("loginMessage");
-
-
-if (loginForm) {
-
-    loginForm.addEventListener(
-        "submit",
-        function (event) {
-
-            event.preventDefault();
-
-            if (loginMessage) {
-
-                loginMessage.textContent =
-                    "Account login will be connected when the account system is added.";
-
-            }
-
-        }
-    );
-
-}
-
-
-/* ==========================================
-   CONTACT FORM
-   ========================================== */
-
-const contactForm =
-    document.getElementById("contactForm");
-
-const contactFormMessage =
-    document.getElementById("contactFormMessage");
-
-
-if (contactForm) {
-
-    contactForm.addEventListener(
-        "submit",
-        function (event) {
-
-            event.preventDefault();
-
-            if (contactFormMessage) {
-
-                contactFormMessage.textContent =
-                    "Thank you! Your message has been received.";
-
-            }
-
-            contactForm.reset();
-
-        }
-    );
-
-}
-
-
-/* ==========================================
-   TEMPORARY MESSAGE
-   ========================================== */
-
-function showTemporaryMessage(message) {
-
-    const existing =
-        document.querySelector(".temporary-message");
-
-    if (existing) {
-        existing.remove();
-    }
-
-
-    const element =
-        document.createElement("div");
-
-    element.className =
-        "temporary-message";
-
-    element.textContent =
-        message;
-
-    document.body.appendChild(element);
-
-
-    setTimeout(function () {
-
-        element.classList.add("visible");
-
-    }, 10);
-
-
-    setTimeout(function () {
-
-        element.classList.remove("visible");
-
-        setTimeout(function () {
-
-            element.remove();
-
-        }, 300);
-
-    }, 2500);
-
-}
-
-
-/* ==========================================
-   HTML ESCAPING
-   ========================================== */
-
-function escapeHTML(value) {
-
-    return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-
-}
-
-
-/* ==========================================
-   INITIALIZE CART COUNT
-   ========================================== */
-
-updateCartCount();
-
-renderCart();
-```
-
+    const checkoutButton = document.getElementById("checkoutButton");
+    if (checkoutButton) checkoutButton.addEventListener("click", startPayPalCheckout);
+
+    updateCartCount();
+    renderGallery();
+    renderCart();
 });
