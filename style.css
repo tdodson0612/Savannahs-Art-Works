@@ -140,16 +140,40 @@ h1 {
     flex-direction: column;
 }
 
+/* Photos show the whole painting, never cropped. */
 .art-photo {
-    aspect-ratio: 4 / 5;
     background: var(--cream-dark);
     overflow: hidden;
 }
 
 .art-photo img {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: auto;
+    transition: opacity 0.2s;
+}
+
+.art-photo a:hover img { opacity: 0.92; }
+
+.art-photo .photo-placeholder { aspect-ratio: 4 / 5; }
+
+.option-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: auto;
+}
+
+.option-select {
+    width: 100%;
+    padding: 11px 12px;
+    margin-bottom: 10px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 14px;
 }
 
 .photo-placeholder {
@@ -189,8 +213,9 @@ h1 {
     margin-bottom: 10px;
 }
 
-.art-info .button,
 .art-info .sold-label { margin-top: auto; }
+
+.gallery { align-items: start; }
 
 .is-sold .art-photo { opacity: 0.6; }
 
@@ -276,6 +301,29 @@ h1 {
 .cart-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
 .cart-item-price { font-weight: 600; }
+
+.qty {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.qty-button {
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.qty-button:hover { border-color: var(--brown); }
+
+.qty-number { min-width: 18px; text-align: center; font-weight: 600; }
+
+.qty .remove-button { margin: 0 0 0 8px; }
 
 .remove-button {
     background: none;

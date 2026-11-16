@@ -1,7 +1,7 @@
 /* script.js - cart and PayPal checkout for Savannah's Art Works.
    You shouldn't need to edit this file. Artwork and settings are in artwork.js. */
 
-const CART_KEY = "savannahCart";
+const CART_KEY = "savannahCartV2";
 
 /* ---------- Helpers ---------- */
 
@@ -22,26 +22,26 @@ function findArtwork(id) {
 }
 
 /* ---------- Cart storage (saved in the visitor's browser) ----------
-   The cart is a list of artwork ids. Each piece is one of a kind,
-   so there are no quantities. */
+   Each cart line is { id, opt, qty }:
+   id  = which artwork, opt = which option (0, 1, 2...), qty = how many. */
 
 function getCart() {
-    let ids = [];
+    let lines = [];
     try {
-        ids = JSON.parse(localStorage.getItem(CART_KEY)) || [];
+        lines = JSON.parse(localStorage.getItem(CART_KEY)) || [];
     } catch (error) {
-        ids = [];
+        lines = [];
     }
-    // Drop anything that's been removed from the list or marked sold.
-    return ids.filter(function (id) {
-        const piece = findArtwork(id);
-        return piece && !piece.sold;
+    // Drop anything that's been removed from the list or sold out.
+    return lines.filter(function (line) {
+        const piece = findArtwork(line.id);
+        return piece && !piece.soldOut && piece.options[line.opt] && line.qty > 0;
     });
 }
 
-function saveCart(ids) {
+function saveCart(lines) {
     try {
-        localStorage.setItem(CART_KEY, JSON.stringify(ids));
+        localStorage.setItem(CART_KEY, JSON.stringify(lines));
     } catch (error) {
         // Private browsing can block storage; the page still works.
     }
@@ -49,10 +49,25 @@ function saveCart(ids) {
 }
 
 function updateCartCount() {
-    const count = getCart().length;
+    const count = getCart().reduce(function (total, line) {
+        return total + line.qty;
+    }, 0);
     document.querySelectorAll(".cart-count").forEach(function (element) {
         element.textContent = count;
     });
+}
+
+function addToCart(id, opt) {
+    const cart = getCart();
+    const existing = cart.find(function (line) {
+        return line.id === id && line.opt === opt;
+    });
+    if (existing) {
+        existing.qty += 1;
+    } else {
+        cart.push({ id: id, opt: opt, qty: 1 });
+    }
+    saveCart(cart);
 }
 
 function showToast(message) {
@@ -77,30 +92,32 @@ function renderGallery() {
         return;
     }
 
-    const cart = getCart();
-
     gallery.innerHTML = ARTWORK.map(function (piece) {
         const photo = piece.image
-            ? '<img src="' + escapeHTML(piece.image) + '" alt="' + escapeHTML(piece.title) + '" loading="lazy">'
+            ? '<a href="' + escapeHTML(piece.image) + '" target="_blank" rel="noopener" title="View larger">' +
+                  '<img src="' + escapeHTML(piece.image) + '" alt="' + escapeHTML(piece.title) + '" loading="lazy">' +
+              '</a>'
             : '<div class="photo-placeholder">Photo coming soon</div>';
 
-        let button;
-        if (piece.sold) {
-            button = '<span class="sold-label">Sold</span>';
-        } else if (cart.includes(piece.id)) {
-            button = '<a href="cart.html" class="button button-outline">In cart, view cart</a>';
-        } else {
-            button = '<button class="button add-button" type="button" data-id="' + escapeHTML(piece.id) + '">Add to cart</button>';
-        }
+        const choices = piece.options.map(function (option, index) {
+            return '<option value="' + index + '">' + escapeHTML(option.label) + ' &ndash; ' + money(option.price) + '</option>';
+        }).join("");
+
+        const fromPrice = Math.min.apply(null, piece.options.map(function (o) { return o.price; }));
+
+        const buying = piece.soldOut
+            ? '<span class="sold-label">Sold out</span>'
+            : '<label class="option-label" for="opt-' + escapeHTML(piece.id) + '">Choose a size</label>' +
+              '<select class="option-select" id="opt-' + escapeHTML(piece.id) + '">' + choices + '</select>' +
+              '<button class="button add-button" type="button" data-id="' + escapeHTML(piece.id) + '">Add to cart</button>';
 
         return (
-            '<article class="art-card' + (piece.sold ? " is-sold" : "") + '">' +
+            '<article class="art-card' + (piece.soldOut ? " is-sold" : "") + '">' +
                 '<div class="art-photo">' + photo + '</div>' +
                 '<div class="art-info">' +
                     '<h2>' + escapeHTML(piece.title) + '</h2>' +
-                    '<p class="art-details">' + escapeHTML(piece.size) + ' &middot; ' + escapeHTML(piece.medium) + '</p>' +
-                    '<p class="art-price">' + money(piece.price) + '</p>' +
-                    button +
+                    '<p class="art-price">From ' + money(fromPrice) + '</p>' +
+                    buying +
                 '</div>' +
             '</article>'
         );
@@ -108,12 +125,11 @@ function renderGallery() {
 
     gallery.querySelectorAll(".add-button").forEach(function (btn) {
         btn.addEventListener("click", function () {
-            const cart = getCart();
             const id = btn.dataset.id;
-            if (!cart.includes(id)) cart.push(id);
-            saveCart(cart);
-            showToast(findArtwork(id).title + " added to your cart");
-            renderGallery();
+            const opt = Number(document.getElementById("opt-" + id).value);
+            const piece = findArtwork(id);
+            addToCart(id, opt);
+            showToast(piece.title + " (" + piece.options[opt].label + ") added to your cart");
         });
     });
 }
@@ -135,9 +151,11 @@ function renderCart() {
 
     let subtotal = 0;
 
-    itemsBox.innerHTML = cart.map(function (id) {
-        const piece = findArtwork(id);
-        subtotal += piece.price;
+    itemsBox.innerHTML = cart.map(function (line, index) {
+        const piece = findArtwork(line.id);
+        const option = piece.options[line.opt];
+        const lineTotal = option.price * line.qty;
+        subtotal += lineTotal;
         const thumb = piece.image
             ? '<img src="' + escapeHTML(piece.image) + '" alt="">'
             : '<div class="photo-placeholder small"></div>';
@@ -146,10 +164,15 @@ function renderCart() {
                 '<div class="cart-thumb">' + thumb + '</div>' +
                 '<div class="cart-item-info">' +
                     '<h2>' + escapeHTML(piece.title) + '</h2>' +
-                    '<p class="art-details">' + escapeHTML(piece.size) + ' &middot; ' + escapeHTML(piece.medium) + '</p>' +
-                    '<button class="remove-button" type="button" data-id="' + escapeHTML(id) + '">Remove</button>' +
+                    '<p class="art-details">' + escapeHTML(option.label) + ' &middot; ' + money(option.price) + ' each</p>' +
+                    '<div class="qty">' +
+                        '<button class="qty-button" type="button" data-index="' + index + '" data-change="-1" aria-label="One less">&minus;</button>' +
+                        '<span class="qty-number">' + line.qty + '</span>' +
+                        '<button class="qty-button" type="button" data-index="' + index + '" data-change="1" aria-label="One more">+</button>' +
+                        '<button class="remove-button" type="button" data-index="' + index + '">Remove</button>' +
+                    '</div>' +
                 '</div>' +
-                '<div class="cart-item-price">' + money(piece.price) + '</div>' +
+                '<div class="cart-item-price">' + money(lineTotal) + '</div>' +
             '</div>'
         );
     }).join("");
@@ -164,11 +187,21 @@ function renderCart() {
     document.getElementById("checkoutButton").disabled = !ready;
     document.getElementById("checkoutNotice").hidden = ready;
 
+    itemsBox.querySelectorAll(".qty-button").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            const lines = getCart();
+            const line = lines[Number(btn.dataset.index)];
+            line.qty += Number(btn.dataset.change);
+            saveCart(lines.filter(function (l) { return l.qty > 0; }));
+            renderCart();
+        });
+    });
+
     itemsBox.querySelectorAll(".remove-button").forEach(function (btn) {
         btn.addEventListener("click", function () {
-            saveCart(getCart().filter(function (id) {
-                return id !== btn.dataset.id;
-            }));
+            const lines = getCart();
+            lines.splice(Number(btn.dataset.index), 1);
+            saveCart(lines);
             renderCart();
         });
     });
@@ -195,12 +228,13 @@ function startPayPalCheckout() {
         cancel_return: pageBase + "cart.html"
     };
 
-    cart.forEach(function (id, index) {
-        const piece = findArtwork(id);
+    cart.forEach(function (line, index) {
+        const piece = findArtwork(line.id);
+        const option = piece.options[line.opt];
         const n = index + 1;
-        fields["item_name_" + n] = piece.title + " (" + piece.size + ")";
-        fields["amount_" + n] = piece.price.toFixed(2);
-        fields["quantity_" + n] = "1";
+        fields["item_name_" + n] = piece.title + " - " + option.label;
+        fields["amount_" + n] = option.price.toFixed(2);
+        fields["quantity_" + n] = String(line.qty);
     });
 
     const form = document.createElement("form");

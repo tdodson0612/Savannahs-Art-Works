@@ -2,8 +2,9 @@
    This is the only file you need to edit to change what's for sale.
 
    To add a piece: copy one { ... } block, paste it, and change the details.
-   To mark a piece sold: change  sold: false  to  sold: true
-   Photos go in assets/images/ (about 200 KB each, .jpg or .webp).
+   Each piece has a list of "options" (print sizes, canvas) with a price each.
+   To stop selling a piece without deleting it: add  soldOut: true
+   Photos go in assets/images/ (about 200 KB each, .jpg).
 */
 
 /* Savannah's PayPal email (the one she logs in to PayPal with).
@@ -11,52 +12,32 @@
    [ASK SAVANNAH: which email is her PayPal account under?] */
 const PAYPAL_EMAIL = "";
 
-/* Flat shipping charge for the whole order, in dollars (for example 25).
-   Leave as null until Savannah decides.
-   [ASK SAVANNAH: how much for shipping?] */
-const SHIPPING_COST = null;
+/* Shipping for the whole order, in dollars.
+   Savannah said "$8 for shipping on all prints."
+   [ASK SAVANNAH: is $8 per order or per print? Same for stretched canvas?] */
+const SHIPPING_COST = 8;
 
-/* The artwork list.
-   THESE THREE ARE SAMPLES so the cart can be tested.
-   Replace them with Savannah's real pieces. */
 const ARTWORK = [
     {
-        id: "sample-1",
-        title: "Sample Piece 1",
-        size: "[ASK SAVANNAH]",
-        medium: "[ASK SAVANNAH]",
-        price: 100,
-        image: "",
-        sold: false
+        id: "school-of-rockfish",
+        title: "School of Rockfish",
+        image: "assets/images/school-of-rockfish.jpg",
+        options: [
+            { label: "Fine print, 8 x 10 in.", price: 35 },
+            { label: "Fine print, 16 x 20 in.", price: 60 },
+            // [ASK SAVANNAH: what size is the stretched canvas?]
+            { label: "Stretched canvas print", price: 149 }
+        ]
     },
     {
-        id: "sample-2",
-        title: "Sample Piece 2",
-        size: "[ASK SAVANNAH]",
-        medium: "[ASK SAVANNAH]",
-        price: 150,
-        image: "",
-        sold: false
-    },
-    {
-        id: "sample-3",
-        title: "Sample Piece 3",
-        size: "[ASK SAVANNAH]",
-        medium: "[ASK SAVANNAH]",
-        price: 200,
-        image: "",
-        sold: true
+        id: "emerald-ambush",
+        title: "Emerald Ambush",
+        image: "assets/images/emerald-ambush.jpg",
+        options: [
+            { label: "Print, 12 x 16 in.", price: 40 },
+            { label: "Print, 18 x 24 in.", price: 60 },
+            // [ASK SAVANNAH: what size is the stretched canvas?]
+            { label: "Stretched canvas print", price: 120 }
+        ]
     }
 ];
-
-/* Example of a real entry, once she sends details:
-    {
-        id: "blue-heron",                       (short, unique, no spaces)
-        title: "Blue Heron",
-        size: "16 x 20 in.",
-        medium: "Charcoal on paper",
-        price: 180,
-        image: "assets/images/blue-heron.jpg",
-        sold: false
-    },
-*/
