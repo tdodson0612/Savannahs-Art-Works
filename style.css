@@ -433,3 +433,20 @@ h1 {
     .cart-item { grid-template-columns: 70px 1fr auto; gap: 12px; }
     .cart-thumb { width: 70px; }
 }
+
+/* Subtitle under "Savannah Dodson Art" */
+.intro .intro-text {
+    font-family: var(--serif);
+    font-size: clamp(20px, 2.6vw, 26px);
+    font-style: italic;
+    margin-top: 10px;
+}
+
+.intro-sub {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--cream-dark);
+    margin-top: 14px;
+}
