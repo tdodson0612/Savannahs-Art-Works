@@ -39,5 +39,13 @@ const ARTWORK = [
             // [ASK SAVANNAH: what size is the stretched canvas?]
             { label: "Stretched canvas print", price: 120 }
         ]
+    },
+    {
+        id: "the-boreal-shadow",
+        title: "The Boreal Shadow",
+        image: "assets/images/the-boreal-shadow.jpg",
+        options: [
+            { label: "Print, 8 x 10 in.", price: 35 }
+        ]
     }
 ];
