@@ -5,6 +5,11 @@
    Each piece has a list of "options" (print sizes, canvas) with a price each.
    To stop selling a piece without deleting it: add  soldOut: true
    Photos go in assets/images/ (about 200 KB each, .jpg).
+
+   width and height are the photo's size in pixels. They let the page save
+   the right amount of space so nothing jumps while photos load.
+   To get them on your Mac:  sips -g pixelWidth -g pixelHeight PHOTO.jpg
+   (webp is optional: a smaller copy of the photo. Leave it out if you don't have one.)
 */
 
 /* Savannah's PayPal email (the one she logs in to PayPal with).
@@ -22,6 +27,9 @@ const ARTWORK = [
         id: "school-of-rockfish",
         title: "School of Rockfish",
         image: "assets/images/school-of-rockfish.jpg",
+        webp: "assets/images/school-of-rockfish.webp",
+        width: 1000,
+        height: 1195,
         options: [
             { label: "Fine print, 8 x 10 in.", price: 35 },
             { label: "Fine print, 16 x 20 in.", price: 60 },
@@ -33,6 +41,9 @@ const ARTWORK = [
         id: "emerald-ambush",
         title: "Emerald Ambush",
         image: "assets/images/emerald-ambush.jpg",
+        webp: "assets/images/emerald-ambush.webp",
+        width: 970,
+        height: 1300,
         options: [
             { label: "Print, 12 x 16 in.", price: 40 },
             { label: "Print, 18 x 24 in.", price: 60 },
@@ -44,6 +55,9 @@ const ARTWORK = [
         id: "the-boreal-shadow",
         title: "The Boreal Shadow",
         image: "assets/images/the-boreal-shadow.jpg",
+        webp: "assets/images/the-boreal-shadow.webp",
+        width: 1000,
+        height: 1236,
         options: [
             { label: "Print, 8 x 10 in.", price: 35 }
         ]

@@ -1,7 +1,9 @@
-/* script.js - cart and PayPal checkout for Savannah's Art Works.
+/* script.js - Savannah's Art Works
+   Cart, PayPal checkout, and the scrolling effects.
    You shouldn't need to edit this file. Artwork and settings are in artwork.js. */
 
 const CART_KEY = "savannahCartV2";
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* ---------- Helpers ---------- */
 
@@ -32,7 +34,6 @@ function getCart() {
     } catch (error) {
         lines = [];
     }
-    // Drop anything that's been removed from the list or sold out.
     return lines.filter(function (line) {
         const piece = findArtwork(line.id);
         return piece && !piece.soldOut && piece.options[line.opt] && line.qty > 0;
@@ -45,15 +46,21 @@ function saveCart(lines) {
     } catch (error) {
         // Private browsing can block storage; the page still works.
     }
-    updateCartCount();
+    updateCartCount(true);
 }
 
-function updateCartCount() {
+function updateCartCount(animate) {
     const count = getCart().reduce(function (total, line) {
         return total + line.qty;
     }, 0);
     document.querySelectorAll(".cart-count").forEach(function (element) {
+        const changed = element.textContent !== String(count);
         element.textContent = count;
+        if (animate && changed) {
+            element.classList.remove("bump");
+            void element.offsetWidth; // restart the animation
+            element.classList.add("bump");
+        }
     });
 }
 
@@ -78,10 +85,85 @@ function showToast(message) {
     clearTimeout(showToast.timer);
     showToast.timer = setTimeout(function () {
         toast.classList.remove("show");
-    }, 2200);
+    }, 2400);
+}
+
+/* ---------- Scroll reveals ----------
+   Anything with class "reveal" fades and rises in when it scrolls into view. */
+
+const revealObserver = "IntersectionObserver" in window
+    ? new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (!entry.isIntersecting) return;
+            const el = entry.target;
+            el.classList.add("is-visible");
+            revealObserver.unobserve(el);
+            // Once it has arrived, drop the delay so hover effects feel instant.
+            setTimeout(function () {
+                el.style.setProperty("--delay", "0s");
+                el.style.transition = "opacity 0.9s var(--ease-out), transform 0.6s var(--ease-out)";
+            }, 1400);
+        });
+    }, { threshold: 0.12, rootMargin: "0px 0px -6% 0px" })
+    : null;
+
+function watchReveals(root) {
+    (root || document).querySelectorAll(".reveal:not(.is-visible)").forEach(function (el) {
+        if (revealObserver && !reduceMotion) {
+            revealObserver.observe(el);
+        } else {
+            el.classList.add("is-visible");
+        }
+    });
+}
+
+/* ---------- Headline: words rise in one at a time ---------- */
+
+function splitHeadline() {
+    document.querySelectorAll(".split-words").forEach(function (heading) {
+        const words = heading.textContent.trim().split(/\s+/);
+        heading.setAttribute("aria-label", words.join(" "));
+        heading.innerHTML = words.map(function (word, i) {
+            return '<span class="word" aria-hidden="true"><span style="--delay:' + (0.1 + i * 0.12) + 's">' +
+                escapeHTML(word) + '</span></span>';
+        }).join(" ");
+        requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+                heading.classList.add("is-visible");
+            });
+        });
+    });
+}
+
+/* ---------- Photos fade in once loaded (no pop-in) ---------- */
+
+function whenLoaded(img) {
+    function done() {
+        img.classList.add("loaded");
+        if (img.closest(".art-photo")) img.closest(".art-photo").classList.add("loaded");
+    }
+    if (img.complete && img.naturalWidth > 0) {
+        done();
+    } else {
+        img.addEventListener("load", done, { once: true });
+        img.addEventListener("error", done, { once: true });
+    }
 }
 
 /* ---------- Home page: artwork grid ---------- */
+
+function pictureHTML(piece, className) {
+    const size = piece.width && piece.height
+        ? ' width="' + piece.width + '" height="' + piece.height + '"'
+        : "";
+    const webp = piece.webp
+        ? '<source srcset="' + escapeHTML(piece.webp) + '" type="image/webp">'
+        : "";
+    return '<picture>' + webp +
+        '<img class="' + className + '" src="' + escapeHTML(piece.image) + '" alt="' + escapeHTML(piece.title) + '"' +
+        size + ' loading="lazy" decoding="async">' +
+        '</picture>';
+}
 
 function renderGallery() {
     const gallery = document.getElementById("gallery");
@@ -92,15 +174,18 @@ function renderGallery() {
         return;
     }
 
-    gallery.innerHTML = ARTWORK.map(function (piece) {
+    gallery.innerHTML = ARTWORK.map(function (piece, index) {
+        // Reserve the photo's exact shape before it loads, so nothing shifts.
+        const ratio = piece.width && piece.height ? ' style="aspect-ratio:' + piece.width + ' / ' + piece.height + '"' : "";
+
         const photo = piece.image
-            ? '<a href="' + escapeHTML(piece.image) + '" target="_blank" rel="noopener" title="View larger">' +
-                  '<img src="' + escapeHTML(piece.image) + '" alt="' + escapeHTML(piece.title) + '" loading="lazy">' +
+            ? '<a href="' + escapeHTML(piece.image) + '" target="_blank" rel="noopener" aria-label="View ' + escapeHTML(piece.title) + ' larger">' +
+                  pictureHTML(piece, "art-img") +
               '</a>'
             : '<div class="photo-placeholder">Photo coming soon</div>';
 
-        const choices = piece.options.map(function (option, index) {
-            return '<option value="' + index + '">' + escapeHTML(option.label) + ' &ndash; ' + money(option.price) + '</option>';
+        const choices = piece.options.map(function (option, i) {
+            return '<option value="' + i + '">' + escapeHTML(option.label) + ' &ndash; ' + money(option.price) + '</option>';
         }).join("");
 
         const fromPrice = Math.min.apply(null, piece.options.map(function (o) { return o.price; }));
@@ -112,8 +197,8 @@ function renderGallery() {
               '<button class="button add-button" type="button" data-id="' + escapeHTML(piece.id) + '">Add to cart</button>';
 
         return (
-            '<article class="art-card' + (piece.soldOut ? " is-sold" : "") + '">' +
-                '<div class="art-photo">' + photo + '</div>' +
+            '<article class="art-card reveal' + (piece.soldOut ? " is-sold" : "") + '" style="--delay:' + ((index % 3) * 0.12) + 's">' +
+                '<div class="art-photo"' + ratio + '>' + photo + '</div>' +
                 '<div class="art-info">' +
                     '<h2>' + escapeHTML(piece.title) + '</h2>' +
                     '<p class="art-price">From ' + money(fromPrice) + '</p>' +
@@ -123,6 +208,9 @@ function renderGallery() {
         );
     }).join("");
 
+    gallery.querySelectorAll(".art-img").forEach(whenLoaded);
+    watchReveals(gallery);
+
     gallery.querySelectorAll(".add-button").forEach(function (btn) {
         btn.addEventListener("click", function () {
             const id = btn.dataset.id;
@@ -130,18 +218,29 @@ function renderGallery() {
             const piece = findArtwork(id);
             addToCart(id, opt);
             showToast(piece.title + " (" + piece.options[opt].label + ") added to your cart");
+
+            // Quick "Added ✓" confirmation on the button itself
+            btn.textContent = "Added";
+            btn.classList.add("added");
+            clearTimeout(btn.resetTimer);
+            btn.resetTimer = setTimeout(function () {
+                btn.textContent = "Add to cart";
+                btn.classList.remove("added");
+            }, 1600);
         });
     });
 }
 
 /* ---------- Cart page ---------- */
 
-function renderCart() {
+function renderCart(animateIn) {
     const itemsBox = document.getElementById("cartItems");
     if (!itemsBox) return;
 
     const summary = document.getElementById("cartSummary");
     const cart = getCart();
+
+    itemsBox.classList.toggle("no-anim", !animateIn);
 
     if (cart.length === 0) {
         itemsBox.innerHTML = '<p class="empty">Your cart is empty.</p>';
@@ -157,18 +256,18 @@ function renderCart() {
         const lineTotal = option.price * line.qty;
         subtotal += lineTotal;
         const thumb = piece.image
-            ? '<img src="' + escapeHTML(piece.image) + '" alt="">'
-            : '<div class="photo-placeholder small"></div>';
+            ? '<img src="' + escapeHTML(piece.image) + '" alt="" decoding="async">'
+            : '';
         return (
-            '<div class="cart-item">' +
+            '<div class="cart-item" style="animation-delay:' + (index * 0.08) + 's">' +
                 '<div class="cart-thumb">' + thumb + '</div>' +
                 '<div class="cart-item-info">' +
                     '<h2>' + escapeHTML(piece.title) + '</h2>' +
                     '<p class="art-details">' + escapeHTML(option.label) + ' &middot; ' + money(option.price) + ' each</p>' +
                     '<div class="qty">' +
-                        '<button class="qty-button" type="button" data-index="' + index + '" data-change="-1" aria-label="One less">&minus;</button>' +
-                        '<span class="qty-number">' + line.qty + '</span>' +
-                        '<button class="qty-button" type="button" data-index="' + index + '" data-change="1" aria-label="One more">+</button>' +
+                        '<button class="qty-button" type="button" data-index="' + index + '" data-change="-1" aria-label="One less ' + escapeHTML(piece.title) + '">&minus;</button>' +
+                        '<span class="qty-number" aria-label="Quantity">' + line.qty + '</span>' +
+                        '<button class="qty-button" type="button" data-index="' + index + '" data-change="1" aria-label="One more ' + escapeHTML(piece.title) + '">+</button>' +
                         '<button class="remove-button" type="button" data-index="' + index + '">Remove</button>' +
                     '</div>' +
                 '</div>' +
@@ -192,19 +291,37 @@ function renderCart() {
             const lines = getCart();
             const line = lines[Number(btn.dataset.index)];
             line.qty += Number(btn.dataset.change);
-            saveCart(lines.filter(function (l) { return l.qty > 0; }));
-            renderCart();
+            if (line.qty <= 0) {
+                removeLine(btn, Number(btn.dataset.index));
+                return;
+            }
+            saveCart(lines);
+            renderCart(false);
         });
     });
 
     itemsBox.querySelectorAll(".remove-button").forEach(function (btn) {
         btn.addEventListener("click", function () {
-            const lines = getCart();
-            lines.splice(Number(btn.dataset.index), 1);
-            saveCart(lines);
-            renderCart();
+            removeLine(btn, Number(btn.dataset.index));
         });
     });
+}
+
+// Slide the row out, then update the cart.
+function removeLine(btn, index) {
+    const row = btn.closest(".cart-item");
+    const finish = function () {
+        const lines = getCart();
+        lines.splice(index, 1);
+        saveCart(lines);
+        renderCart(false);
+    };
+    if (reduceMotion || !row) {
+        finish();
+        return;
+    }
+    row.classList.add("leaving");
+    setTimeout(finish, 340);
 }
 
 /* ---------- PayPal checkout ----------
@@ -253,9 +370,78 @@ function startPayPalCheckout() {
     form.submit();
 }
 
+/* ---------- Background photo + header, driven by scroll ----------
+   The photo slides up as you scroll: at the top you see the trees,
+   at the bottom of the page you've reached the water.
+   The header tucks away when scrolling down and comes back when scrolling up. */
+
+function setupScrollEffects() {
+    const bgImg = document.getElementById("bgImage");
+    const header = document.getElementById("siteHeader");
+    let lastY = window.scrollY;
+    let ticking = false;
+
+    if (bgImg) whenLoaded(bgImg);
+
+    function update() {
+        ticking = false;
+        const y = window.scrollY;
+        const viewH = window.innerHeight;
+
+        if (bgImg && !reduceMotion) {
+            const travel = Math.max(0, bgImg.offsetHeight - viewH);
+            const maxScroll = document.documentElement.scrollHeight - viewH;
+            const progress = maxScroll > 0 ? Math.min(1, Math.max(0, y / maxScroll)) : 0;
+            bgImg.style.transform = "translate3d(0," + (-travel * progress).toFixed(1) + "px,0)";
+        }
+
+        if (header) {
+            header.classList.toggle("is-scrolled", y > 24);
+            if (Math.abs(y - lastY) > 4) {
+                const goingDown = y > lastY;
+                header.classList.toggle("is-hidden", goingDown && y > 220);
+                lastY = y;
+            }
+        }
+    }
+
+    function requestUpdate() {
+        if (!ticking) {
+            ticking = true;
+            requestAnimationFrame(update);
+        }
+    }
+
+    window.addEventListener("scroll", requestUpdate, { passive: true });
+    window.addEventListener("resize", requestUpdate);
+    if (bgImg) bgImg.addEventListener("load", requestUpdate);
+
+    // Show the header again when someone tabs into it with the keyboard.
+    if (header) {
+        header.addEventListener("focusin", function () {
+            header.classList.remove("is-hidden");
+        });
+    }
+
+    update();
+}
+
+/* ---------- Smooth, weighted scrolling (Lenis) ----------
+   Only for mouse wheels and trackpads; phones keep their normal scrolling.
+   Turned off for people who ask their device for reduced motion. */
+
+function setupSmoothScroll() {
+    if (reduceMotion || typeof Lenis === "undefined") return;
+    window.lenis = new Lenis({
+        autoRaf: true,
+        lerp: 0.09,
+        smoothWheel: true
+    });
+}
+
 /* ---------- Start ---------- */
 
-document.addEventListener("DOMContentLoaded", function () {
+function start() {
     document.querySelectorAll("#currentYear").forEach(function (element) {
         element.textContent = new Date().getFullYear();
     });
@@ -270,7 +456,17 @@ document.addEventListener("DOMContentLoaded", function () {
     const checkoutButton = document.getElementById("checkoutButton");
     if (checkoutButton) checkoutButton.addEventListener("click", startPayPalCheckout);
 
-    updateCartCount();
+    updateCartCount(false);
+    splitHeadline();
     renderGallery();
-    renderCart();
-});
+    renderCart(true);
+    watchReveals(document);
+    setupScrollEffects();
+    setupSmoothScroll();
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", start);
+} else {
+    start();
+}
