@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <!-- Private page: never list it on Google. -->
+    <meta name="robots" content="noindex, nofollow">
+    <title>Manage my art</title>
+    <meta name="theme-color" content="#fffdf9">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="My Art">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="manage.css">
+</head>
+<body>
+
+    <!-- Sign in -->
+    <main id="loginView" class="login-view" hidden>
+        <form id="loginForm" class="login-card">
+            <p class="eyebrow">Savannah Dodson Art</p>
+            <h1>Manage my art</h1>
+            <label for="email">Email</label>
+            <input id="email" type="email" autocomplete="username" required>
+            <label for="password">Password</label>
+            <input id="password" type="password" autocomplete="current-password" required>
+            <button class="btn btn-primary" type="submit" id="loginButton">Sign in</button>
+            <p id="loginError" class="error" role="alert" hidden></p>
+        </form>
+    </main>
+
+    <!-- Signed in -->
+    <div id="appView" hidden>
+        <header class="top">
+            <div class="top-inner">
+                <h1>Manage my art</h1>
+                <div class="top-links">
+                    <a href="index.html" target="_blank" rel="noopener">View my shop</a>
+                    <button type="button" class="link-button" id="signOut">Sign out</button>
+                </div>
+            </div>
+            <nav class="tabs" aria-label="Sections">
+                <button type="button" class="tab is-active" data-tab="paintings">Paintings</button>
+                <button type="button" class="tab" data-tab="orders">Orders</button>
+            </nav>
+        </header>
+
+        <main class="content">
+            <!-- Paintings list -->
+            <section id="paintingsView">
+                <button type="button" class="btn btn-primary" id="addPainting">+ Add a painting</button>
+                <div id="paintingList" class="painting-list"></div>
+            </section>
+
+            <!-- Add / edit one painting -->
+            <section id="editView" hidden>
+                <button type="button" class="link-button back" id="backToList">&larr; All paintings</button>
+                <h2 id="editHeading">Add a painting</h2>
+
+                <form id="editForm" novalidate>
+                    <div class="field">
+                        <label for="title">Painting name</label>
+                        <input id="title" type="text" required placeholder="School of Rockfish">
+                        <p class="hint">Quotes are added on the site automatically.</p>
+                    </div>
+
+                    <div class="field">
+                        <span class="label">Photo</span>
+                        <div class="photo-box">
+                            <img id="photoPreview" alt="" hidden>
+                            <p id="noPhoto" class="hint">No photo yet.</p>
+                        </div>
+                        <label class="btn btn-outline file-button">
+                            <input id="photoInput" type="file" accept="image/*">
+                            <span id="photoButtonText">Choose a photo</span>
+                        </label>
+                        <p class="hint">Straight on, good light, no glare. It's resized automatically.</p>
+                    </div>
+
+                    <fieldset class="field">
+                        <legend>Prints</legend>
+                        <div id="printRows"></div>
+                        <button type="button" class="btn btn-outline small" id="addPrint">+ Add a print size</button>
+                        <p class="hint">Each row becomes a choice in the menu under the photo, like "Print, 8 x 10 in. – $35.00".</p>
+                    </fieldset>
+
+                    <fieldset class="field">
+                        <legend>Original painting</legend>
+                        <label class="check">
+                            <input type="checkbox" id="originalAvailable">
+                            <span>The original is available to buy</span>
+                        </label>
+                        <div id="originalFields" class="original-fields" hidden>
+                            <div class="row">
+                                <div>
+                                    <label for="originalPrice">Price ($)</label>
+                                    <input id="originalPrice" type="number" min="1" step="0.01" inputmode="decimal" placeholder="450">
+                                </div>
+                                <div>
+                                    <label for="originalSize">Size (optional)</label>
+                                    <input id="originalSize" type="text" placeholder="16 x 20 in.">
+                                </div>
+                            </div>
+                            <p class="hint">When someone buys the original, this turns off by itself and "Original" disappears from the menu.</p>
+                        </div>
+                    </fieldset>
+
+                    <div class="field">
+                        <label class="check">
+                            <input type="checkbox" id="visible" checked>
+                            <span>Show this painting on my shop</span>
+                        </label>
+                    </div>
+
+                    <p id="formError" class="error" role="alert" hidden></p>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary" id="saveButton">Save</button>
+                        <button type="button" class="btn btn-outline" id="cancelEdit">Cancel</button>
+                    </div>
+
+                    <button type="button" class="btn btn-danger" id="deleteButton" hidden>Delete this painting</button>
+                </form>
+            </section>
+
+            <!-- Orders -->
+            <section id="ordersView" hidden>
+                <p class="hint">Sales from your shop show up here once PayPal confirms them. Your full details are always in PayPal too.</p>
+                <div id="orderList"></div>
+            </section>
+        </main>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script src="assets/js/supabase.js"></script>
+    <script src="config.js"></script>
+    <script src="manage.js"></script>
+</body>
+</html>

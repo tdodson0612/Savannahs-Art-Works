@@ -696,3 +696,52 @@ h1 {
 
     @view-transition { navigation: none; }
 }
+
+/* ---------- Loading and status bits ---------- */
+
+/* Placeholder cards while the paintings load */
+.art-card.skeleton {
+    aspect-ratio: 3 / 4.6;
+    overflow: hidden;
+    background: rgba(255, 253, 249, 0.82);
+}
+
+.art-card.skeleton::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.6) 50%, transparent 70%);
+    transform: translateX(-100%);
+    animation: shimmer 1.4s var(--ease-in-out) infinite;
+}
+
+.load-error {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: #fff;
+    background: rgba(28, 38, 31, 0.7);
+    padding: 24px;
+    border-radius: 6px;
+}
+
+.original-badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--cream-dark);
+    color: var(--brown-dark);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    vertical-align: 2px;
+}
+
+.one-of-a-kind {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
