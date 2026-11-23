@@ -447,9 +447,9 @@ function renderCart(animateIn) {
     if (note) note.textContent = SHIPPING_NOTE;
     summary.hidden = false;
 
-    const ready = PAYPAL_EMAIL !== "";
-    document.getElementById("checkoutButton").disabled = !ready;
-    document.getElementById("checkoutNotice").hidden = ready;
+    const payButton = document.getElementById("cardPay");
+    if (payButton && !payButton.disabled) payButton.textContent = "Pay " + money(subtotal + shipping);
+    setupCheckout();
 
     itemsBox.querySelectorAll(".qty-button").forEach(function (btn) {
         btn.addEventListener("click", function () {
@@ -488,56 +488,216 @@ function removeLine(btn, index) {
     setTimeout(finish, 340);
 }
 
-/* ---------- PayPal checkout ----------
-   Sends the cart to PayPal's checkout page. The buyer pays there
-   (PayPal account or card), then comes back to cart.html?paid=1.
-   PayPal also tells the database about the sale (notify_url), which is
-   how a sold original disappears from the menu by itself. */
+/* ---------- Checkout (stays on this page) ----------
+   Two ways to pay:
+   1. PayPal button: PayPal opens a small window over this page.
+   2. Card: shipping form + three PayPal-hosted boxes (number, expiration, code).
+   Prices are never sent from here: the paypal-checkout function looks them up
+   in the database, so nobody can change them. */
 
-function startPayPalCheckout() {
-    const cart = getCart();
-    if (cart.length === 0 || !artworkReady) return;
+const CHECKOUT_URL = SUPABASE_URL + "/functions/v1/paypal-checkout";
+const US_STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
+let checkoutStarted = false;
+let cardFields = null;
+let paying = false;
 
-    const pageBase = window.location.href.split("?")[0].replace(/cart\.html$/, "");
+function showCheckoutError(message) {
+    const box = document.getElementById("checkoutError");
+    if (!box) return;
+    box.textContent = message || "";
+    box.hidden = !message;
+}
 
-    const fields = {
-        cmd: "_cart",
-        upload: "1",
-        business: PAYPAL_EMAIL,
-        currency_code: "USD",
-        charset: "utf-8",
-        no_shipping: "2",
-        handling_cart: shippingFor(cart).toFixed(2),
-        return: pageBase + "cart.html?paid=1",
-        cancel_return: pageBase + "cart.html",
-        notify_url: SUPABASE_URL + "/functions/v1/paypal-ipn"
+function cartForServer() {
+    return getCart().map(function (line) {
+        return { id: line.id, opt: line.opt, qty: line.qty };
+    });
+}
+
+function readShipping() {
+    const v = function (id) { return document.getElementById(id).value.trim(); };
+    return {
+        name: v("shipName"), email: v("shipEmail"), line1: v("shipLine1"), line2: v("shipLine2"),
+        city: v("shipCity"), state: v("shipState"), zip: v("shipZip")
     };
+}
 
-    cart.forEach(function (line, index) {
-        const piece = findArtwork(line.id);
-        const option = findOption(piece, line.opt);
-        const n = index + 1;
-        fields["item_name_" + n] = lineName(piece, option);
-        fields["item_number_" + n] = piece.id + "|" + option.key;
-        fields["amount_" + n] = option.price.toFixed(2);
-        fields["quantity_" + n] = String(line.qty);
+// Check the shipping form before asking PayPal for anything.
+function shippingProblem(s) {
+    if (!s.name || !s.line1 || !s.city) return "Please fill in your name and full shipping address.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.email)) return "Please enter a valid email address.";
+    if (!s.state) return "Please choose your state.";
+    if (!/^\d{5}(-\d{4})?$/.test(s.zip)) return "Please enter a valid 5-digit ZIP code.";
+    return "";
+}
+
+function callCheckout(body) {
+    return fetch(CHECKOUT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: SUPABASE_KEY },
+        body: JSON.stringify(body)
+    }).then(function (res) {
+        return res.json().catch(function () { return { error: "Something went wrong. You have not been charged." }; });
+    });
+}
+
+function createOrder(method) {
+    showCheckoutError("");
+    const body = { action: "create", method: method, cart: cartForServer() };
+    if (method === "card") body.shipping = readShipping();
+    return callCheckout(body).then(function (data) {
+        if (!data.id) {
+            showCheckoutError(data.error || "Checkout couldn't start. Please try again.");
+            throw new Error(data.error || "create failed");
+        }
+        return data.id;
+    });
+}
+
+function captureOrder(orderID) {
+    return callCheckout({ action: "capture", orderID: orderID }).then(function (data) {
+        if (!data.ok) {
+            showCheckoutError(data.error || "The payment didn't go through. You have not been charged.");
+            setPaying(false);
+            return;
+        }
+        // Paid! Empty the cart and say thank you.
+        try { localStorage.setItem(CART_KEY, "[]"); } catch (error) { /* fine */ }
+        updateCartCount(true);
+        document.getElementById("cartItems").innerHTML = "";
+        document.getElementById("cartSummary").hidden = true;
+        const thanks = document.getElementById("thankYou");
+        thanks.hidden = false;
+        const who = document.getElementById("thankYouEmail");
+        if (who) who.textContent = data.email || "";
+        const wrap = document.getElementById("thankYouEmailWrap");
+        if (wrap) wrap.hidden = !data.email;
+        window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+        loadArtwork(); // a sold original disappears from the menu right away
+    });
+}
+
+function setPaying(on) {
+    paying = on;
+    const button = document.getElementById("cardPay");
+    if (!button) return;
+    button.disabled = on;
+    if (on) {
+        button.textContent = "Processing…";
+    } else {
+        const cart = getCart();
+        const total = cart.reduce(function (s, l) { return s + findOption(findArtwork(l.id), l.opt).price * l.qty; }, 0) + shippingFor(cart);
+        button.textContent = "Pay " + money(total);
+    }
+}
+
+function loadPayPalSdk() {
+    if (window.paypal) return Promise.resolve(window.paypal);
+    return new Promise(function (resolve, reject) {
+        const script = document.createElement("script");
+        script.src = "https://www.paypal.com/sdk/js?client-id=" + encodeURIComponent(PAYPAL_CLIENT_ID) +
+            "&currency=USD&intent=capture&components=buttons,card-fields&disable-funding=paylater,venmo,card";
+        script.setAttribute("data-page-type", "checkout");
+        script.onload = function () { resolve(window.paypal); };
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+}
+
+function setupCheckout() {
+    if (checkoutStarted || !document.getElementById("payArea")) return;
+    checkoutStarted = true;
+
+    const stateSelect = document.getElementById("shipState");
+    stateSelect.innerHTML = '<option value="">State</option>' + US_STATES.map(function (s) {
+        return '<option value="' + s + '">' + s + '</option>';
+    }).join("");
+
+    loadPayPalSdk().then(function (paypal) {
+        document.getElementById("payLoading").hidden = true;
+
+        // 1. PayPal button
+        paypal.Buttons({
+            fundingSource: paypal.FUNDING.PAYPAL,
+            style: { layout: "vertical", color: "gold", shape: "rect", label: "paypal", height: 48 },
+            createOrder: function () { return createOrder("paypal"); },
+            onApprove: function (data) { return captureOrder(data.orderID); },
+            onShippingAddressChange: function (data, actions) {
+                // US shipping only
+                if (data.shippingAddress && data.shippingAddress.countryCode !== "US") {
+                    return actions.reject(data.errors.COUNTRY_ERROR);
+                }
+            },
+            onCancel: function () { showCheckoutError(""); },
+            onError: function () {
+                if (!document.getElementById("checkoutError").textContent) {
+                    showCheckoutError("PayPal had a problem. You have not been charged. Please try again.");
+                }
+            }
+        }).render("#paypalButton");
+
+        // 2. Card boxes (hosted by PayPal inside her page)
+        cardFields = paypal.CardFields({
+            createOrder: function () { return createOrder("card"); },
+            onApprove: function (data) { return captureOrder(data.orderID); },
+            onError: function () {
+                setPaying(false);
+                if (!document.getElementById("checkoutError").textContent) {
+                    showCheckoutError("Your card couldn't be processed. You have not been charged. Please check the details and try again.");
+                }
+            },
+            style: {
+                "input": { "font-size": "16px", "font-family": "Montserrat, Arial, sans-serif", "color": "#292721", "padding": "12px" },
+                ".invalid": { "color": "#a23b2a" }
+            }
+        });
+
+        if (cardFields.isEligible()) {
+            cardFields.NumberField({ placeholder: "1234 1234 1234 1234" }).render("#cardNumber");
+            cardFields.ExpiryField({ placeholder: "MM / YY" }).render("#cardExpiry");
+            cardFields.CVVField({ placeholder: "123" }).render("#cardCvv");
+            document.getElementById("payDivider").hidden = false;
+            document.getElementById("cardToggle").hidden = false;
+        }
+    }).catch(function () {
+        document.getElementById("payLoading").textContent = "Checkout couldn’t load. Please refresh the page.";
     });
 
-    const form = document.createElement("form");
-    form.method = "POST";
-    form.action = "https://www.paypal.com/cgi-bin/webscr";
-    form.acceptCharset = "UTF-8";
-
-    Object.keys(fields).forEach(function (name) {
-        const input = document.createElement("input");
-        input.type = "hidden";
-        input.name = name;
-        input.value = fields[name];
-        form.appendChild(input);
+    document.getElementById("cardToggle").addEventListener("click", function () {
+        const form = document.getElementById("cardForm");
+        form.hidden = !form.hidden;
+        this.setAttribute("aria-expanded", String(!form.hidden));
+        this.classList.toggle("is-open", !form.hidden);
+        if (!form.hidden) document.getElementById("shipName").focus();
     });
 
-    document.body.appendChild(form);
-    form.submit();
+    document.getElementById("cardForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+        if (paying || !cardFields) return;
+        showCheckoutError("");
+        const problem = shippingProblem(readShipping());
+        if (problem) {
+            showCheckoutError(problem);
+            return;
+        }
+        cardFields.getState().then(function (state) {
+            const f = state.fields || {};
+            const bad = ["cardNumberField", "cardExpiryField", "cardCvvField"].filter(function (k) {
+                return f[k] && !f[k].isValid;
+            });
+            if (bad.length) {
+                showCheckoutError("Please check your card number, expiration date and security code.");
+                return;
+            }
+            setPaying(true);
+            cardFields.submit().catch(function () {
+                setPaying(false);
+                if (!document.getElementById("checkoutError").textContent) {
+                    showCheckoutError("Your card couldn't be processed. You have not been charged. Please try again.");
+                }
+            });
+        });
+    });
 }
 
 /* ---------- Background photo + header, driven by scroll ---------- */
@@ -616,8 +776,6 @@ function start() {
         if (thanks) thanks.hidden = false;
     }
 
-    const checkoutButton = document.getElementById("checkoutButton");
-    if (checkoutButton) checkoutButton.addEventListener("click", startPayPalCheckout);
 
     // Skeleton cards while the paintings load
     const gallery = document.getElementById("gallery");

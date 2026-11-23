@@ -751,3 +751,98 @@ h1 {
     color: var(--muted);
     margin: -8px 0 16px;
 }
+
+/* ---------- On-page checkout ---------- */
+
+.pay-area { margin-top: 4px; }
+
+.paypal-button { min-height: 48px; position: relative; z-index: 1; }
+
+.pay-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 14px 0;
+    color: var(--muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+}
+
+.pay-divider::before,
+.pay-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+}
+
+.card-toggle { background: var(--ink); border-color: var(--ink); }
+.card-toggle.is-open { border-radius: 3px 3px 0 0; }
+
+.card-form {
+    border: 1px solid var(--line);
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    background: var(--paper);
+    padding: 18px 16px 20px;
+    animation: slide-in 0.4s var(--ease-out) both;
+}
+
+.card-form fieldset { border: none; margin: 0 0 16px; padding: 0; }
+
+.card-form legend {
+    font-family: var(--serif);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--brown-dark);
+    margin-bottom: 6px;
+}
+
+.card-form label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin: 10px 0 4px;
+}
+
+.card-form input,
+.card-form select {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: #fff;
+    font-family: var(--sans);
+    font-size: 16px;
+    color: var(--ink);
+}
+
+.card-form input:focus,
+.card-form select:focus { border-color: var(--brown); outline: none; }
+
+/* PayPal puts each card box (an iframe) inside these */
+.card-field { min-height: 46px; }
+.card-field iframe { width: 100% !important; }
+
+.field-row { display: flex; gap: 10px; }
+.field-row > div { min-width: 0; }
+.field-row .grow { flex: 1; }
+.field-row select { min-width: 84px; }
+.field-row input#shipZip { width: 100px; }
+
+@media (max-width: 420px) {
+    .field-row { flex-wrap: wrap; }
+    .field-row .grow { flex-basis: 100%; }
+}
+
+.checkout-error {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 4px;
+    background: #f8e3dd;
+    color: #8a2f20;
+    font-size: 14px;
+}

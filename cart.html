@@ -39,7 +39,7 @@
 
             <div id="thankYou" class="thank-you" hidden>
                 <h2>Thank you for your order!</h2>
-                <p>Your payment is complete, and PayPal has emailed you a receipt. You can also log into your PayPal account to see the details. Savannah will email you when your art ships.</p>
+                <p>Your payment is complete, and a receipt has been emailed to you<span id="thankYouEmailWrap"> at <strong id="thankYouEmail"></strong></span>. Savannah will email you when your art ships.</p>
             </div>
 
             <div id="cartItems"></div>
@@ -49,9 +49,68 @@
                 <div class="summary-row"><span>Shipping</span><span id="shipping"></span></div>
                 <div class="summary-row total"><span>Total</span><span id="total"></span></div>
                 <p id="shippingNote" class="shipping-note"></p>
-                <button id="checkoutButton" class="button" type="button">Check out with PayPal</button>
-                <p class="small-note">You can pay with your PayPal account or a debit or credit card.</p>
-                <p id="checkoutNotice" class="small-note" hidden>Checkout isn't turned on yet.</p>
+                <div id="payArea" class="pay-area">
+                    <p id="payLoading" class="small-note">Loading secure checkout&hellip;</p>
+
+                    <!-- 1. PayPal button (PayPal opens a small window over this page) -->
+                    <div id="paypalButton" class="paypal-button"></div>
+
+                    <div id="payDivider" class="pay-divider" hidden><span>or</span></div>
+
+                    <!-- 2. Pay by card, right on this page -->
+                    <button id="cardToggle" class="button card-toggle" type="button" aria-expanded="false" aria-controls="cardForm" hidden>
+                        Pay with debit or credit card
+                    </button>
+
+                    <form id="cardForm" class="card-form" hidden novalidate>
+                        <fieldset>
+                            <legend>Ship to</legend>
+                            <label for="shipName">Full name</label>
+                            <input id="shipName" autocomplete="shipping name" required>
+                            <label for="shipEmail">Email (for your receipt)</label>
+                            <input id="shipEmail" type="email" autocomplete="email" inputmode="email" required>
+                            <label for="shipLine1">Street address</label>
+                            <input id="shipLine1" autocomplete="shipping address-line1" required>
+                            <label for="shipLine2">Apt, suite, etc. (optional)</label>
+                            <input id="shipLine2" autocomplete="shipping address-line2">
+                            <div class="field-row">
+                                <div class="grow">
+                                    <label for="shipCity">City</label>
+                                    <input id="shipCity" autocomplete="shipping address-level2" required>
+                                </div>
+                                <div>
+                                    <label for="shipState">State</label>
+                                    <select id="shipState" autocomplete="shipping address-level1" required></select>
+                                </div>
+                                <div>
+                                    <label for="shipZip">ZIP</label>
+                                    <input id="shipZip" autocomplete="shipping postal-code" inputmode="numeric" maxlength="10" required>
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+                            <legend>Card</legend>
+                            <label>Card number</label>
+                            <div id="cardNumber" class="card-field"></div>
+                            <div class="field-row">
+                                <div class="grow">
+                                    <label>Expiration date</label>
+                                    <div id="cardExpiry" class="card-field"></div>
+                                </div>
+                                <div class="grow">
+                                    <label>Security code</label>
+                                    <div id="cardCvv" class="card-field"></div>
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <button id="cardPay" class="button" type="submit">Pay</button>
+                    </form>
+                </div>
+
+                <p id="checkoutError" class="checkout-error" role="alert" hidden></p>
+                <p class="small-note">Payments are processed securely by PayPal. Card numbers never touch this website.</p>
             </div>
 
             <p><a href="index.html" class="back-link">&larr; Keep browsing</a></p>
