@@ -191,6 +191,7 @@ function openEditor(painting) {
     $("originalAvailable").checked = painting ? painting.original_available : false;
     $("originalPrice").value = painting && painting.original_price ? painting.original_price : "";
     $("originalSize").value = painting && painting.original_size ? painting.original_size : "";
+    $("originalShipping").value = painting && painting.original_shipping != null ? painting.original_shipping : "";
     $("originalFields").hidden = !$("originalAvailable").checked;
     $("deleteButton").hidden = !painting;
     resetDeleteButton();
@@ -316,6 +317,11 @@ $("editForm").addEventListener("submit", async function (event) {
     if (originalAvailable && !(originalPrice > 0)) {
         return showError($("formError"), "Please add a price for the original, or uncheck “The original is available.”");
     }
+    const shippingText = $("originalShipping").value.trim();
+    const originalShipping = shippingText === "" ? null : Math.round(Number(shippingText) * 100) / 100;
+    if (originalAvailable && (originalShipping === null || !(originalShipping >= 0))) {
+        return showError($("formError"), "Please add shipping for the original (use 0 for free shipping).");
+    }
     if (!prints.length && !originalAvailable && $("visible").checked) {
         return showError($("formError"), "Add at least one print size or the original, so people have something to buy.");
     }
@@ -332,6 +338,7 @@ $("editForm").addEventListener("submit", async function (event) {
         original_available: originalAvailable,
         original_price: originalAvailable ? Math.round(originalPrice * 100) / 100 : (editing ? editing.original_price : null),
         original_size: $("originalSize").value.trim() || null,
+        original_shipping: originalShipping,
         visible: $("visible").checked,
         updated_at: new Date().toISOString()
     };

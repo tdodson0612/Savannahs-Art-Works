@@ -745,3 +745,9 @@ h1 {
     text-transform: uppercase;
     color: var(--muted);
 }
+
+.shipping-note {
+    font-size: 13px;
+    color: var(--muted);
+    margin: -8px 0 16px;
+}

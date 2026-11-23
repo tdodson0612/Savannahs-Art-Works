@@ -82,7 +82,7 @@
                         <legend>Prints</legend>
                         <div id="printRows"></div>
                         <button type="button" class="btn btn-outline small" id="addPrint">+ Add a print size</button>
-                        <p class="hint">Each row becomes a choice in the menu under the photo, like "Print, 8 x 10 in. – $35.00".</p>
+                        <p class="hint">Each row becomes a choice in the menu under the photo, like "Print, 8 x 10 in. – $35.00". Put the word "canvas" in the size for stretched canvas (like "Stretched canvas, 18 x 24 in.") so it gets canvas shipping.</p>
                     </fieldset>
 
                     <fieldset class="field">
@@ -100,6 +100,12 @@
                                 <div>
                                     <label for="originalSize">Size (optional)</label>
                                     <input id="originalSize" type="text" placeholder="16 x 20 in.">
+                                </div>
+                            </div>
+                            <div class="row" style="margin-top:10px">
+                                <div>
+                                    <label for="originalShipping">Shipping for the original ($)</label>
+                                    <input id="originalShipping" type="number" min="0" step="0.01" inputmode="decimal" placeholder="25">
                                 </div>
                             </div>
                             <p class="hint">When someone buys the original, this turns off by itself and "Original" disappears from the menu.</p>

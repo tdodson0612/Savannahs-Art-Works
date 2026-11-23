@@ -41,6 +41,8 @@ function optionMenuLabel(option) {
     if (option.kind === "original") {
         return "Original" + (option.size ? ", " + option.size : "") + " – " + money(option.price);
     }
+    // "Stretched canvas, 18 x 24 in." reads fine on its own; others get "Print, ..."
+    if (isCanvas(option)) return option.size + " – " + money(option.price);
     return "Print, " + option.size + " – " + money(option.price);
 }
 
@@ -51,6 +53,29 @@ function lineName(piece, option) {
         return quoted(piece.title) + " original" + (option.size ? " – " + option.size : "");
     }
     return quoted(piece.title) + " print – " + option.size;
+}
+
+/* ---------- Shipping ----------
+   Once per order: $8 for prints, or $14 if there's any stretched canvas.
+   Each original adds its own shipping (Savannah sets it per painting). */
+
+function isCanvas(option) {
+    return option.kind === "print" && /canvas/i.test(option.size || "");
+}
+
+function shippingFor(cart) {
+    let hasPrint = false;
+    let hasCanvas = false;
+    let originals = 0;
+    cart.forEach(function (line) {
+        const option = findOption(findArtwork(line.id), line.opt);
+        if (!option) return;
+        if (option.kind === "original") originals += option.shipping || 0;
+        else if (isCanvas(option)) hasCanvas = true;
+        else hasPrint = true;
+    });
+    const printShipping = hasCanvas ? SHIPPING_CANVAS : (hasPrint ? SHIPPING_PRINTS : 0);
+    return printShipping + originals;
 }
 
 /* ---------- Loading the paintings ---------- */
@@ -67,7 +92,13 @@ function normalize(rows) {
         }).filter(function (o) { return o.size && o.price > 0; });
 
         if (row.original_available && Number(row.original_price) > 0) {
-            options.push({ key: "orig", kind: "original", size: row.original_size || "", price: Number(row.original_price) });
+            options.push({
+                key: "orig",
+                kind: "original",
+                size: row.original_size || "",
+                price: Number(row.original_price),
+                shipping: Number(row.original_shipping) || 0
+            });
         }
 
         const img = imageURL(row.image);
@@ -99,7 +130,7 @@ function loadArtwork() {
 
     // 2. Get the latest from the database.
     const url = SUPABASE_URL + "/rest/v1/artworks" +
-        "?select=id,title,image,image_width,image_height,prints,original_available,original_price,original_size" +
+        "?select=id,title,image,image_width,image_height,prints,original_available,original_price,original_size,original_shipping" +
         "&visible=eq.true&order=sort_order.asc,created_at.asc";
 
     fetch(url, { headers: { apikey: SUPABASE_KEY } })
@@ -408,13 +439,15 @@ function renderCart(animateIn) {
         );
     }).join("");
 
-    const shippingKnown = typeof SHIPPING_COST === "number";
+    const shipping = shippingFor(cart);
     document.getElementById("subtotal").textContent = money(subtotal);
-    document.getElementById("shipping").textContent = shippingKnown ? money(SHIPPING_COST) : "[ASK SAVANNAH]";
-    document.getElementById("total").textContent = money(subtotal + (shippingKnown ? SHIPPING_COST : 0));
+    document.getElementById("shipping").textContent = money(shipping);
+    document.getElementById("total").textContent = money(subtotal + shipping);
+    const note = document.getElementById("shippingNote");
+    if (note) note.textContent = SHIPPING_NOTE;
     summary.hidden = false;
 
-    const ready = PAYPAL_EMAIL !== "" && shippingKnown;
+    const ready = PAYPAL_EMAIL !== "";
     document.getElementById("checkoutButton").disabled = !ready;
     document.getElementById("checkoutNotice").hidden = ready;
 
@@ -474,7 +507,7 @@ function startPayPalCheckout() {
         currency_code: "USD",
         charset: "utf-8",
         no_shipping: "2",
-        handling_cart: SHIPPING_COST.toFixed(2),
+        handling_cart: shippingFor(cart).toFixed(2),
         return: pageBase + "cart.html?paid=1",
         cancel_return: pageBase + "cart.html",
         notify_url: SUPABASE_URL + "/functions/v1/paypal-ipn"
