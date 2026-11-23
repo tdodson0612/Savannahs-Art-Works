@@ -312,9 +312,40 @@ input:focus { border-color: var(--brown); outline: none; }
     font-size: 14px;
 }
 
-.order-top { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
-.order-top span { color: var(--muted); font-size: 13px; }
-.order ul { margin: 6px 0 0 18px; }
+.order-top { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; flex-wrap: wrap; }
+.order-top strong { font-size: 18px; }
+.order-date { color: var(--muted); font-size: 13px; margin-left: auto; }
+.order ul { margin: 6px 0 10px 18px; }
+.order .btn { margin-top: 12px; }
+.order.is-shipped { opacity: 0.75; }
+
+.ship-to {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin: 6px 0;
+    font-size: 15px;
+    line-height: 1.4;
+}
+
+.ship-to .label { margin-bottom: 4px; }
+.buyer { font-size: 13px; color: var(--muted); margin-top: 6px; }
+.buyer a { color: var(--brown); }
+
+.chip.to-ship { background: #f4dccf; color: var(--red) !important; font-size: 11px; }
+.chip.shipped { background: #dfe9d8; color: #3c5a2e !important; font-size: 11px; }
+
+.badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: var(--red);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+}
 
 /* ---------- Toast ---------- */
 

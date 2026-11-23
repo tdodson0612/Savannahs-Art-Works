@@ -54,7 +54,10 @@ async function showRightView() {
     const signedIn = !!data.session;
     $("loginView").hidden = signedIn;
     $("appView").hidden = !signedIn;
-    if (signedIn) loadPaintings();
+    if (signedIn) {
+        loadPaintings();
+        refreshOrderBadge();
+    }
 }
 
 $("loginForm").addEventListener("submit", async function (event) {
@@ -402,35 +405,120 @@ $("deleteButton").addEventListener("click", async function () {
 
 /* ---------- Orders ---------- */
 
+let orders = [];
+
+function needsShipping(o) {
+    return !o.shipped && o.payment_status === "Completed";
+}
+
+// The little number on the Orders tab = orders paid but not shipped yet.
+function updateOrderBadge() {
+    const count = orders.filter(needsShipping).length;
+    const tab = document.querySelector('.tab[data-tab="orders"]');
+    tab.innerHTML = "Orders" + (count ? ' <span class="badge">' + count + ' to ship</span>' : "");
+}
+
+async function refreshOrderBadge() {
+    const { data } = await db.from("orders").select("id,shipped,payment_status").limit(500);
+    if (data) {
+        orders = data;
+        updateOrderBadge();
+    }
+}
+
 async function loadOrders() {
     $("orderList").innerHTML = '<p class="hint">Loading…</p>';
-    const { data, error } = await db.from("orders").select("*").order("created_at", { ascending: false }).limit(100);
+    const { data, error } = await db.from("orders").select("*").order("created_at", { ascending: false }).limit(200);
     if (error) {
         $("orderList").innerHTML = '<p class="error">Couldn’t load orders. Please refresh.</p>';
         return;
     }
-    if (!data.length) {
+    orders = data;
+    updateOrderBadge();
+    renderOrders();
+}
+
+function renderOrders() {
+    if (!orders.length) {
         $("orderList").innerHTML = '<p class="hint">No orders yet.</p>';
         return;
     }
-    $("orderList").innerHTML = data.map(function (o) {
+
+    // Orders that still need shipping go first.
+    const sorted = orders.slice().sort(function (a, b) {
+        const aw = needsShipping(a) ? 0 : 1;
+        const bw = needsShipping(b) ? 0 : 1;
+        if (aw !== bw) return aw - bw;
+        return new Date(b.created_at) - new Date(a.created_at);
+    });
+
+    $("orderList").innerHTML = sorted.map(function (o) {
         const items = (o.items || []).map(function (it) {
             return '<li>' + escapeHTML(it.name) + (it.qty > 1 ? " × " + it.qty : "") + '</li>';
         }).join("");
-        const warn = o.price_check && o.price_check !== "ok"
-            ? '<p class="warn">Check this one in PayPal before shipping: ' + escapeHTML(o.price_check) + '</p>'
+
+        const warnings = [];
+        if (o.payment_status && o.payment_status !== "Completed") {
+            warnings.push(o.payment_status === "Refunded" || o.payment_status === "Reversed"
+                ? "This order was " + o.payment_status.toLowerCase() + ". Don’t ship it."
+                : "PayPal says this payment is “" + o.payment_status + "”. Wait until it shows Completed in PayPal before shipping.");
+        }
+        if (o.price_check && o.price_check !== "ok") {
+            warnings.push("Check this one in PayPal before shipping: " + o.price_check);
+        }
+
+        const address = o.ship_address
+            ? '<div class="ship-to"><span class="label">Ship to</span>' +
+                  '<p>' + escapeHTML(o.ship_name || "") + '</p>' +
+                  '<p>' + escapeHTML(o.ship_address).replace(/\n/g, "<br>") + '</p>' +
+              '</div>'
+            : '<p class="hint">No shipping address was sent. Check this order in PayPal.</p>';
+
+        const status = o.shipped
+            ? '<span class="chip shipped">Shipped' + (o.shipped_at ? " " + new Date(o.shipped_at).toLocaleDateString() : "") + '</span>'
+            : (needsShipping(o) ? '<span class="chip to-ship">To ship</span>' : "");
+
+        const button = o.payment_status === "Completed"
+            ? '<button type="button" class="btn ' + (o.shipped ? "btn-outline" : "btn-primary") + ' small ship-toggle" data-id="' + o.id + '">' +
+                  (o.shipped ? "Undo “shipped”" : "Mark as shipped") + '</button>'
             : "";
+
         return (
-            '<div class="order">' +
-                '<div class="order-top"><strong>' + money(o.gross || 0) + '</strong>' +
-                '<span>' + new Date(o.created_at).toLocaleString() + '</span></div>' +
-                '<p>' + escapeHTML(o.payer_name || "") + (o.payer_email ? " · " + escapeHTML(o.payer_email) : "") + '</p>' +
+            '<div class="order' + (o.shipped ? " is-shipped" : "") + '">' +
+                '<div class="order-top"><strong>' + money(o.gross || 0) + '</strong>' + status +
+                '<span class="order-date">' + new Date(o.created_at).toLocaleString() + '</span></div>' +
                 '<ul>' + items + '</ul>' +
-                (o.payment_status && o.payment_status !== "Completed" ? '<p class="warn">PayPal status: ' + escapeHTML(o.payment_status) + '</p>' : '') +
-                warn +
+                address +
+                '<p class="buyer">' + escapeHTML(o.payer_name || "") + (o.payer_email ? ' · <a href="mailto:' + escapeHTML(o.payer_email) + '">' + escapeHTML(o.payer_email) + '</a>' : "") + '</p>' +
+                warnings.map(function (w) { return '<p class="warn">' + escapeHTML(w) + '</p>'; }).join("") +
+                button +
             '</div>'
         );
     }).join("");
+
+    $("orderList").querySelectorAll(".ship-toggle").forEach(function (b) {
+        b.addEventListener("click", function () { toggleShipped(Number(b.dataset.id), b); });
+    });
+}
+
+async function toggleShipped(id, button) {
+    const order = orders.find(function (o) { return o.id === id; });
+    if (!order) return;
+    const shipped = !order.shipped;
+    setBusy(button, true, "Saving…");
+    const { error } = await db.from("orders")
+        .update({ shipped: shipped, shipped_at: shipped ? new Date().toISOString() : null })
+        .eq("id", id);
+    if (error) {
+        setBusy(button, false);
+        toast("Couldn't save that. Please try again.");
+        return;
+    }
+    order.shipped = shipped;
+    order.shipped_at = shipped ? new Date().toISOString() : null;
+    toast(shipped ? "Marked as shipped." : "Moved back to “to ship.”");
+    updateOrderBadge();
+    renderOrders();
 }
 
 /* ---------- Start ---------- */
